@@ -8,8 +8,7 @@
 ![Codecov](https://img.shields.io/codecov/c/github/KundaPanda/strawberry-django-jwt?style=for-the-badge)
 [![Codacy grade](https://img.shields.io/codacy/grade/aa892e1ed8924429af95d9eeaa495338?style=for-the-badge)](https://www.codacy.com/gh/KundaPanda/strawberry-django-jwt/dashboard?utm_source=github.com&utm_medium=referral&utm_content=KundaPanda/strawberry-django-jwt&utm_campaign=Badge_Grade)
 
-[JSON Web Token](https://jwt.io/>) authentication
-for [Strawberry Django GraphQL](https://strawberry.rocks/docs/integrations/django)
+[JSON Web Token](https://jwt.io/>) authentication for [Strawberry Django GraphQL](https://strawberry.rocks/docs/integrations/django)
 
 ---
 
@@ -74,10 +73,9 @@ substitutes [Graphene](https://graphene-python.org/) GraphQL backend for [Strawb
        verify_token = jwt_mutations.Verify.verify
        refresh_token = jwt_mutations.Refresh.refresh
        delete_token_cookie = jwt_mutations.DeleteJSONWebTokenCookie.delete_cookie
-
+   ```
 
    schema = strawberry.Schema(mutation=Mutation, query=...)
-   ```
 
 6. \[OPTIONAL\] Set up the custom Strawberry views
 
@@ -90,9 +88,9 @@ substitutes [Graphene](https://graphene-python.org/) GraphQL backend for [Strawb
    from ... import schema
 
    urlpatterns += \
-    [
-        re_path(r'^graphql/?$', jwt_cookie(GQLView.as_view(schema=schema))),
-    ]
+   [
+       re_path(r'^graphql/?$', jwt_cookie(GQLView.as_view(schema=schema))),
+   ]
    ```
 
    or, for async views:
@@ -104,9 +102,9 @@ substitutes [Graphene](https://graphene-python.org/) GraphQL backend for [Strawb
    from ... import schema
 
    urlpatterns += \
-    [
-        re_path(r'^graphql/?$', jwt_cookie(AGQLView.as_view(schema=schema))),
-    ]
+   [
+       re_path(r'^graphql/?$', jwt_cookie(AGQLView.as_view(schema=schema))),
+   ]
    ```
 
 ---

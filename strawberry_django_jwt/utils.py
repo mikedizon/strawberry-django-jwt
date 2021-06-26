@@ -2,8 +2,8 @@ from calendar import timegm
 from datetime import datetime
 from inspect import isawaitable
 from typing import Any
-from typing import cast
 from typing import Union
+from typing import cast
 
 import jwt
 from asgiref.sync import sync_to_async
@@ -21,24 +21,24 @@ from .settings import jwt_settings
 def jwt_payload(user, context=None):
     username = user.get_username()
 
-    if hasattr(username, 'pk'):
+    if hasattr(username, "pk"):
         username = username.pk
 
     exp = datetime.utcnow() + jwt_settings.JWT_EXPIRATION_DELTA
 
     payload = {
         user.USERNAME_FIELD: username,
-        'exp': timegm(exp.utctimetuple()),
+        "exp": timegm(exp.utctimetuple()),
     }
 
     if jwt_settings.JWT_ALLOW_REFRESH:
-        payload['origIat'] = timegm(datetime.utcnow().utctimetuple())
+        payload["origIat"] = timegm(datetime.utcnow().utctimetuple())
 
     if jwt_settings.JWT_AUDIENCE is not None:
-        payload['aud'] = jwt_settings.JWT_AUDIENCE
+        payload["aud"] = jwt_settings.JWT_AUDIENCE
 
     if jwt_settings.JWT_ISSUER is not None:
-        payload['iss'] = jwt_settings.JWT_ISSUER
+        payload["iss"] = jwt_settings.JWT_ISSUER
 
     return object_types.TokenPayloadType(**payload)
 
@@ -56,24 +56,26 @@ def jwt_encode(payload: object_types.TokenPayloadType, context=None) -> str:
 
 
 def jwt_decode(token: str, context=None) -> object_types.TokenPayloadType:
-    return object_types.TokenPayloadType(**jwt.decode(
-        token,
-        jwt_settings.JWT_PUBLIC_KEY or jwt_settings.JWT_SECRET_KEY,
-        options={
-            'verify_exp': jwt_settings.JWT_VERIFY_EXPIRATION,
-            'verify_aud': jwt_settings.JWT_AUDIENCE is not None,
-            'verify_signature': jwt_settings.JWT_VERIFY,
-        },
-        leeway=jwt_settings.JWT_LEEWAY,
-        audience=jwt_settings.JWT_AUDIENCE,
-        issuer=jwt_settings.JWT_ISSUER,
-        algorithms=[jwt_settings.JWT_ALGORITHM],
-    ))
+    return object_types.TokenPayloadType(
+        **jwt.decode(
+            token,
+            jwt_settings.JWT_PUBLIC_KEY or jwt_settings.JWT_SECRET_KEY,
+            options={
+                "verify_exp": jwt_settings.JWT_VERIFY_EXPIRATION,
+                "verify_aud": jwt_settings.JWT_AUDIENCE is not None,
+                "verify_signature": jwt_settings.JWT_VERIFY,
+            },
+            leeway=jwt_settings.JWT_LEEWAY,
+            audience=jwt_settings.JWT_AUDIENCE,
+            issuer=jwt_settings.JWT_ISSUER,
+            algorithms=[jwt_settings.JWT_ALGORITHM],
+        )
+    )
 
 
 def get_http_authorization(context):
     req = get_context(context)
-    auth = req.META.get(jwt_settings.JWT_AUTH_HEADER_NAME, '').split()
+    auth = req.META.get(jwt_settings.JWT_AUTH_HEADER_NAME, "").split()
     prefix = jwt_settings.JWT_AUTH_HEADER_PREFIX
 
     if len(auth) != 2 or auth[0].lower() != prefix.lower():
@@ -83,7 +85,7 @@ def get_http_authorization(context):
 
 def get_token_argument(request, **kwargs):
     if jwt_settings.JWT_ALLOW_ARGUMENT:
-        input_fields = kwargs.get('input')
+        input_fields = kwargs.get("input")
 
         if isinstance(input_fields, dict):
             kwargs = input_fields
@@ -105,8 +107,7 @@ def get_token_argument(request, **kwargs):
 
 
 def get_credentials(request, **kwargs):
-    return (get_token_argument(request, **kwargs) or
-            get_http_authorization(request))
+    return get_token_argument(request, **kwargs) or get_http_authorization(request)
 
 
 def get_payload(token, context=None):
@@ -115,9 +116,9 @@ def get_payload(token, context=None):
     except jwt.ExpiredSignatureError:
         raise exceptions.JSONWebTokenExpired()
     except jwt.DecodeError:
-        raise exceptions.JSONWebTokenError(_('Error decoding signature'))
+        raise exceptions.JSONWebTokenError(_("Error decoding signature"))
     except jwt.InvalidTokenError:
-        raise exceptions.JSONWebTokenError(_('Invalid token'))
+        raise exceptions.JSONWebTokenError(_("Invalid token"))
     return payload
 
 
@@ -132,7 +133,9 @@ def get_user_by_natural_key(username):
 async def get_user_by_natural_key_async(username):
     user_model = get_user_model()
     try:
-        return await sync_to_async(user_model._default_manager.get_by_natural_key)(username)
+        return await sync_to_async(user_model._default_manager.get_by_natural_key)(
+            username
+        )
     except user_model.DoesNotExist:
         return None
 
@@ -141,12 +144,12 @@ def get_user_by_payload(payload):
     username = jwt_settings.JWT_PAYLOAD_GET_USERNAME_HANDLER(payload)
 
     if not username:
-        raise exceptions.JSONWebTokenError(_('Invalid payload'))
+        raise exceptions.JSONWebTokenError(_("Invalid payload"))
 
     user = jwt_settings.JWT_GET_USER_BY_NATURAL_KEY_HANDLER(username)
 
-    if user is not None and not getattr(user, 'is_active', True):
-        raise exceptions.JSONWebTokenError(_('User is disabled'))
+    if user is not None and not getattr(user, "is_active", True):
+        raise exceptions.JSONWebTokenError(_("User is disabled"))
     return user
 
 
@@ -154,12 +157,12 @@ async def get_user_by_payload_async(payload):
     username = jwt_settings.JWT_PAYLOAD_GET_USERNAME_HANDLER(payload)
 
     if not username:
-        raise exceptions.JSONWebTokenError(_('Invalid payload'))
+        raise exceptions.JSONWebTokenError(_("Invalid payload"))
 
     user = await jwt_settings.JWT_ASYNC_GET_USER_BY_NATURAL_KEY_HANDLER(username)
 
-    if user is not None and not getattr(user, 'is_active', True):
-        raise exceptions.JSONWebTokenError(_('User is disabled'))
+    if user is not None and not getattr(user, "is_active", True):
+        raise exceptions.JSONWebTokenError(_("User is disabled"))
     return user
 
 
@@ -170,12 +173,12 @@ def refresh_has_expired(orig_iat, context=None):
 
 def set_cookie(response, key, value, expires):
     kwargs = {
-        'expires': expires,
-        'httponly': True,
-        'secure': jwt_settings.JWT_COOKIE_SECURE,
-        'path': jwt_settings.JWT_COOKIE_PATH,
-        'domain': jwt_settings.JWT_COOKIE_DOMAIN,
-        'samesite': jwt_settings.JWT_COOKIE_SAMESITE,
+        "expires": expires,
+        "httponly": True,
+        "secure": jwt_settings.JWT_COOKIE_SECURE,
+        "path": jwt_settings.JWT_COOKIE_PATH,
+        "domain": jwt_settings.JWT_COOKIE_DOMAIN,
+        "samesite": jwt_settings.JWT_COOKIE_SAMESITE,
     }
     response.set_cookie(key, value, **kwargs)
 

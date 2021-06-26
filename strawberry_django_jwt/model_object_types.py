@@ -7,7 +7,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
 
-BORING = dir(type('dummy', (object,), {}))
+BORING = dir(type("dummy", (object,), {}))
 
 
 @strawberry.django.type(Permission)
@@ -32,7 +32,7 @@ class UserType:
 
     id: Optional[strawberry.ID] = None
     pk: Optional[strawberry.ID] = None
-    username: str = ''
+    username: str = ""
     is_authenticated: bool = False
     is_staff: bool = False
     is_active: bool = False

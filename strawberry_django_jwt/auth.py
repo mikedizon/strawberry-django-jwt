@@ -1,16 +1,18 @@
 import inspect
 import re
 
+from asgiref.sync import sync_to_async
 from django.contrib.auth import get_backends
 from django.contrib.auth import user_login_failed
 from django.core.exceptions import PermissionDenied
+from django.core.handlers.asgi import ASGIRequest
 from django.views.decorators.debug import sensitive_variables
 
-SENSITIVE_CREDENTIALS = re.compile('api|token|key|secret|password|signature', re.I)
-CLEANSED_SUBSTITUTE = '********************'
+SENSITIVE_CREDENTIALS = re.compile("api|token|key|secret|password|signature", re.I)
+CLEANSED_SUBSTITUTE = "********************"
 
 
-@sensitive_variables('credentials')
+@sensitive_variables("credentials")
 def _clean_credentials(credentials):
     """
     Clean a dictionary of credentials of potentially sensitive info before
@@ -24,7 +26,7 @@ def _clean_credentials(credentials):
     return credentials
 
 
-@sensitive_variables('credentials')
+@sensitive_variables("credentials")
 async def authenticate(request=None, **credentials):
     """
     If the given credentials are valid, return a User object.
@@ -42,7 +44,12 @@ async def authenticate(request=None, **credentials):
             elif inspect.iscoroutinefunction(backend.authenticate):
                 user = await backend.authenticate(request, **credentials)
             else:
-                user = backend.authenticate(request, **credentials)
+                if isinstance(request, ASGIRequest):
+                    user = await sync_to_async(backend.authenticate)(
+                        request, **credentials
+                    )
+                else:
+                    user = backend.authenticate(request, **credentials)
         except PermissionDenied:
             # This backend says to stop in our tracks - this user should not be allowed in at all.
             break
@@ -53,4 +60,6 @@ async def authenticate(request=None, **credentials):
         return user
 
     # The credentials supplied are invalid to all backends, fire signal
-    user_login_failed.send(sender=__name__, credentials=_clean_credentials(credentials), request=request)
+    user_login_failed.send(
+        sender=__name__, credentials=_clean_credentials(credentials), request=request
+    )

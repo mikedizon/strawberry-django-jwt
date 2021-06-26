@@ -24,7 +24,10 @@ class DeleteRefreshTokenCookie(RequestInfoMixin):
     @strawberry.mutation
     def delete_cookie(self, info: Info) -> DeleteType:
         ctx = get_context(info)
-        setattr(ctx,
-                "delete_refresh_token_cookie",
-                jwt_settings.JWT_REFRESH_TOKEN_COOKIE_NAME in ctx.COOKIES and getattr(ctx, 'jwt_cookie', False))
+        setattr(
+            ctx,
+            "delete_refresh_token_cookie",
+            jwt_settings.JWT_REFRESH_TOKEN_COOKIE_NAME in ctx.COOKIES
+            and getattr(ctx, "jwt_cookie", False),
+        )
         return DeleteType(deleted=getattr(ctx, "delete_refresh_token_cookie"))

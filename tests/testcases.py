@@ -17,16 +17,14 @@ from strawberry_django_jwt.utils import jwt_payload
 
 
 class UserTestCase(testcases.TestCase):
-
     def setUp(self):
         self.user = get_user_model().objects.create_user(
-            username='test',
-            password='dolphins',
+            username="test",
+            password="dolphins",
         )
 
 
 class TestCase(UserTestCase):
-
     def setUp(self):
         super().setUp()
         self.payload = jwt_payload(self.user)
@@ -34,14 +32,14 @@ class TestCase(UserTestCase):
         self.request_factory = RequestFactory()
 
     def info(self, user=None, **headers):
-        request = self.request_factory.post('/', **headers)
+        request = self.request_factory.post("/", **headers)
 
         if user is not None:
             request.user = user
 
         return mock.Mock(
             context=request,
-            path=['test'],
+            path=["test"],
             spec=GraphQLResolveInfo,
         )
 
@@ -58,7 +56,7 @@ class SchemaTestCase(TestCase, JSONWebTokenTestCase):
         self.client.schema(query=self.Query, mutation=self.Mutation)
 
     def execute(self, variables=None):
-        assert self.query, ('`query` property not specified')
+        assert self.query, "`query` property not specified"
         return self.client.execute(self.query, variables)
 
     def assertUsernameIn(self, payload):
@@ -67,31 +65,29 @@ class SchemaTestCase(TestCase, JSONWebTokenTestCase):
 
 
 class RelaySchemaTestCase(SchemaTestCase):
-
     def execute(self, variables=None):
-        return super().execute({'input': variables})
+        return super().execute({"input": variables})
 
 
 class CookieClient(JSONWebTokenClient):
-
     def post(self, path, data, **kwargs):
-        kwargs.setdefault('content_type', 'application/json')
-        return self.generic('POST', path, json.dumps(data), **kwargs)
+        kwargs.setdefault("content_type", "application/json")
+        return self.generic("POST", path, json.dumps(data), **kwargs)
 
     def set_cookie(self, token):
         self.cookies[jwt_settings.JWT_COOKIE_NAME] = token
 
     def execute(self, query, variables=None, **extra):
         data = {
-            'query': query,
-            'variables': variables,
+            "query": query,
+            "variables": variables,
         }
         view = GraphQLView(schema=self._schema)
-        request = self.post('/', data=data, **extra)
+        request = self.post("/", data=data, **extra)
         response = jwt_cookie(view.dispatch)(request)
         content = self._parse_json(response)
-        response.data = content.get('data')
-        response.errors = content.get('errors')
+        response.data = content.get("data")
+        response.errors = content.get("errors")
         return response
 
 
@@ -108,20 +104,20 @@ class RelayCookieTestCase(RelaySchemaTestCase, CookieTestCase):
 
 if django.VERSION[:2] >= (3, 1):
     from django.test import AsyncRequestFactory  # type: ignore
-    from strawberry_django_jwt.testcases import AsyncJSONWebTokenTestCase
+    from strawberry_django_jwt.testcases import (
+        AsyncJSONWebTokenTestCase,
+        AsyncJSONWebTokenClient,
+    )
+    from strawberry.django.views import AsyncGraphQLView
 
-
-    class AsyncUserTestCase(testcases.TransactionTestCase, ):
-
+    class AsyncUserTestCase(testcases.TransactionTestCase):
         def setUp(self):
             self.user = get_user_model().objects.create_user(
-                username='test',
-                password='dolphins',
+                username="test",
+                password="dolphins",
             )
 
-
     class AsyncTestCase(AsyncUserTestCase):
-
         def setUp(self):
             super().setUp()
             self.payload = jwt_payload(self.user)
@@ -129,17 +125,16 @@ if django.VERSION[:2] >= (3, 1):
             self.request_factory = AsyncRequestFactory()
 
         def info(self, user=None, **headers):
-            request = self.request_factory.post('/', **headers)
+            request = self.request_factory.post("/", **headers)
 
             if user is not None:
                 request.user = user
 
             return mock.Mock(
                 context=request,
-                path=['test'],
+                path=["test"],
                 spec=GraphQLResolveInfo,
             )
-
 
     class AsyncSchemaTestCase(AsyncTestCase, AsyncJSONWebTokenTestCase):
         @strawberry.type
@@ -152,10 +147,37 @@ if django.VERSION[:2] >= (3, 1):
             super().setUp()
             self.client.schema(query=self.Query, mutation=self.Mutation)
 
-        async def execute(self, variables=None):
-            assert self.query, ('`query` property not specified')
-            return await self.client.execute(self.query, variables)
+        def execute(self, variables=None):
+            assert self.query, "`query` property not specified"
+            return self.client.execute(self.query, variables)
 
         def assertUsernameIn(self, payload):
             username = payload[self.user.USERNAME_FIELD]
             self.assertEqual(self.user.get_username(), username)
+
+    class AsyncCookieClient(AsyncJSONWebTokenClient):
+        def post(self, path, data, **kwargs):
+            kwargs.setdefault("content_type", "application/json")
+            return self.generic("POST", path, json.dumps(data), **kwargs)
+
+        def set_cookie(self, token):
+            self.cookies[jwt_settings.JWT_COOKIE_NAME] = token
+
+        async def execute(self, query, variables=None, **extra):
+            data = {
+                "query": query,
+                "variables": variables,
+            }
+            view = AsyncGraphQLView(schema=self._schema)
+            request = self.post("/", data=data, **extra)
+            response = await jwt_cookie(view.dispatch)(request)
+            content = self._parse_json(response)
+            response.data = content.get("data")
+            response.errors = content.get("errors")
+            return response
+
+    class AsyncCookieTestCase(AsyncSchemaTestCase):
+        client_class = AsyncCookieClient
+
+        def set_cookie(self):
+            self.client.set_cookie(self.token)

@@ -1,3 +1,4 @@
+import django
 import strawberry
 import strawberry_django_jwt.mutations
 
@@ -8,7 +9,7 @@ from .testcases import CookieTestCase
 
 
 class TokenAuthTests(mixins.TokenAuthMixin, SchemaTestCase):
-    query = '''
+    query = """
     mutation TokenAuth($username: String!, $password: String!) {
       tokenAuth(username: $username, password: $password) {
         token
@@ -18,15 +19,15 @@ class TokenAuthTests(mixins.TokenAuthMixin, SchemaTestCase):
         refreshToken
         refreshExpiresIn
       }
-    }'''
+    }"""
 
     refresh_token_mutations = {
-        'token_auth': strawberry_django_jwt.mutations.ObtainJSONWebToken.obtain,
+        "token_auth": strawberry_django_jwt.mutations.ObtainJSONWebToken.obtain,
     }
 
 
 class RefreshTests(mixins.RefreshMixin, SchemaTestCase):
-    query = '''
+    query = """
     mutation RefreshToken($refreshToken: String) {
       refreshToken(refreshToken: $refreshToken) {
         token
@@ -38,20 +39,20 @@ class RefreshTests(mixins.RefreshMixin, SchemaTestCase):
         refreshToken
         refreshExpiresIn
       }
-    }'''
+    }"""
 
     refresh_token_mutations = {
-        'refresh_token': Refresh.refresh,
+        "refresh_token": Refresh.refresh,
     }
 
 
 class RevokeTests(mixins.RevokeMixin, SchemaTestCase):
-    query = '''
+    query = """
     mutation RevokeToken($refreshToken: String!) {
       revokeToken(refreshToken: $refreshToken) {
         revoked
       }
-    }'''
+    }"""
 
     @strawberry.type
     class Mutation:
@@ -59,7 +60,7 @@ class RevokeTests(mixins.RevokeMixin, SchemaTestCase):
 
 
 class CookieTokenAuthTests(mixins.CookieTokenAuthMixin, CookieTestCase):
-    query = '''
+    query = """
     mutation TokenAuth($username: String!, $password: String!) {
       tokenAuth(username: $username, password: $password) {
         token
@@ -70,15 +71,15 @@ class CookieTokenAuthTests(mixins.CookieTokenAuthMixin, CookieTestCase):
         refreshToken
         refreshExpiresIn
       }
-    }'''
+    }"""
 
     refresh_token_mutations = {
-        'token_auth': strawberry_django_jwt.mutations.ObtainJSONWebToken.obtain,
+        "token_auth": strawberry_django_jwt.mutations.ObtainJSONWebToken.obtain,
     }
 
 
 class CookieRefreshTests(mixins.CookieRefreshMixin, CookieTestCase):
-    query = '''
+    query = """
     mutation {
       refreshToken {
         token
@@ -88,21 +89,47 @@ class CookieRefreshTests(mixins.CookieRefreshMixin, CookieTestCase):
         refreshToken
         refreshExpiresIn
       }
-    }'''
+    }"""
 
     refresh_token_mutations = {
-        'refresh_token': Refresh.refresh,
+        "refresh_token": Refresh.refresh,
     }
 
 
 class DeleteCookieTests(mixins.DeleteCookieMixin, CookieTestCase):
-    query = '''
+    query = """
     mutation {
       deleteCookie {
         deleted
       }
-    }'''
+    }"""
 
     @strawberry.type
     class Mutation:
-        delete_cookie = strawberry_django_jwt.mutations.DeleteRefreshTokenCookie.delete_cookie
+        delete_cookie = (
+            strawberry_django_jwt.mutations.DeleteRefreshTokenCookie.delete_cookie
+        )
+
+
+if django.VERSION[:2] >= (3, 1):
+    from .testcases import AsyncCookieTestCase
+
+    class AsyncCookieTokenAuthTests(
+        mixins.AsyncCookieTokenAuthMixin, AsyncCookieTestCase
+    ):
+        query = """
+        mutation TokenAuth($username: String!, $password: String!) {
+          tokenAuth(username: $username, password: $password) {
+            token
+            payload {
+                username
+                origIat
+            }
+            refreshToken
+            refreshExpiresIn
+          }
+        }"""
+
+        refresh_token_mutations = {
+            "token_auth": strawberry_django_jwt.mutations.ObtainJSONWebToken.obtain,
+        }

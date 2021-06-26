@@ -18,13 +18,13 @@ from .refresh_token.mutations import DeleteRefreshTokenCookie
 from .refresh_token.mutations import Revoke
 
 __all__ = [
-    'JSONWebTokenMutation',
-    'ObtainJSONWebToken',
-    'Verify',
-    'Refresh',
-    'Revoke',
-    'DeleteRefreshTokenCookie',
-    'DeleteJSONWebTokenCookie'
+    "JSONWebTokenMutation",
+    "ObtainJSONWebToken",
+    "Verify",
+    "Refresh",
+    "Revoke",
+    "DeleteRefreshTokenCookie",
+    "DeleteJSONWebTokenCookie",
 ]
 
 from .settings import jwt_settings
@@ -37,11 +37,15 @@ class JSONWebTokenMutation(mixins.OptionalJSONWebTokenMixin):
         super().__init_subclass__()
         user = get_user_model().USERNAME_FIELD
         field: StrawberryField
-        for (name, field) in inspect.getmembers(cls, lambda f: isinstance(f, StrawberryField)):
-            field.arguments.extend([
-                StrawberryArgument(user, user, str),
-                StrawberryArgument('password', 'password', str),
-            ])
+        for (name, field) in inspect.getmembers(
+            cls, lambda f: isinstance(f, StrawberryField)
+        ):
+            field.arguments.extend(
+                [
+                    StrawberryArgument(user, user, str),
+                    StrawberryArgument("password", "password", str),
+                ]
+            )
 
 
 class ObtainJSONWebToken(RequestInfoMixin, JSONWebTokenMutation):
@@ -69,7 +73,10 @@ class DeleteJSONWebTokenCookie(RequestInfoMixin):
     @strawberry.mutation
     def delete_cookie(self, info) -> DeleteType:
         ctx = get_context(info)
-        setattr(ctx,
-                "delete_jwt_cookie",
-                jwt_settings.JWT_COOKIE_NAME in ctx.COOKIES and getattr(ctx, 'jwt_cookie', False))
+        setattr(
+            ctx,
+            "delete_jwt_cookie",
+            jwt_settings.JWT_COOKIE_NAME in ctx.COOKIES
+            and getattr(ctx, "jwt_cookie", False),
+        )
         return DeleteType(deleted=getattr(ctx, "delete_jwt_cookie"))

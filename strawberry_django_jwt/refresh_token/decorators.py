@@ -1,7 +1,6 @@
 from functools import wraps
 
 from django.utils.translation import gettext as _
-from strawberry.django.context import StrawberryDjangoContext
 
 from .. import exceptions
 from ..settings import jwt_settings
@@ -18,7 +17,7 @@ def ensure_refresh_token(f):
             )
             if refresh_token is None:
                 raise exceptions.JSONWebTokenError(
-                    _('Refresh token is required'),
+                    _("Refresh token is required"),
                 )
         return f(cls, info, refresh_token, *args, **kwargs)
 

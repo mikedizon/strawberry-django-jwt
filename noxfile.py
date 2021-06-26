@@ -8,7 +8,7 @@ from nox import session
 
 package = "strawberry_django_jwt"
 python_versions = ["3.9", "3.8", "3.7"]
-django_versions = ['3.0', '3.1', '3.2']
+django_versions = ["3.0", "3.1", "3.2"]
 pyjwt_versions = ["1.7.1", "2.1.0"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
@@ -48,8 +48,7 @@ def activate_virtualenv_in_precommit_hooks(session_: Session) -> None:
         text = hook.read_text()
         bindir = repr(session_.bin)[1:-1]  # strip quotes
         if not (
-                Path("A") == Path("a") and bindir.lower(
-        ) in text.lower() or bindir in text
+            Path("A") == Path("a") and bindir.lower() in text.lower() or bindir in text
         ):
             continue
 
@@ -82,7 +81,6 @@ def pre_commit(session_: Session) -> None:
         "pep8-naming",
         "pre-commit",
         "pre-commit-hooks",
-        "reorder-python-imports",
     )
     session_.run("pre-commit", *args)
     if args and args[0] == "install":
@@ -93,9 +91,15 @@ def pre_commit(session_: Session) -> None:
 def safety(session_: Session) -> None:
     """Scan dependencies for insecure packages."""
     requirements = Path("requirements.txt")
-    session_.run("poetry", "export",
-                 f"-o{requirements}", "--dev", "--without-hashes", external=True)
-    session_.install("safety")
+    session_.run(
+        "poetry",
+        "export",
+        f"-o{requirements}",
+        "--dev",
+        "--without-hashes",
+        external=True,
+    )
+    session_.install(f"-r{requirements}")
     session_.run("safety", "check", "--full-report", f"--file={requirements}")
     requirements.unlink()
 
@@ -104,13 +108,19 @@ def safety(session_: Session) -> None:
 def mypy(session_: Session) -> None:
     """Type-check using mypy."""
     args = session_.posargs or ["strawberry_django_jwt", "tests"]
-    deps = [".", "mypy", "pytest", "django-stubs", "types-cryptography", "types-mock", "types-pkg_resources",
-            "types-jwt"]
+    deps = [
+        "mypy",
+        "pytest",
+        "django-stubs",
+        "types-cryptography",
+        "types-mock",
+        "types-pkg_resources",
+        "types-jwt",
+    ]
     session_.install(*deps)
     session_.run("mypy", *args)
     if not session_.posargs:
-        session_.run(
-            "mypy", f"--python-executable={sys.executable}", "noxfile.py")
+        session_.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
 
 
 @session(name="tests", python=python_versions)
@@ -118,17 +128,21 @@ def mypy(session_: Session) -> None:
 def tests(session_: Session, django: str) -> None:
     """Run the test suite."""
     requirements = Path("requirements.txt")
-    session_.run("poetry", "export",
-                 f"-o{requirements}", "--dev", "--without-hashes", external=True)
+    session_.run(
+        "poetry",
+        "export",
+        f"-o{requirements}",
+        "--dev",
+        "--without-hashes",
+        external=True,
+    )
     session_.install(f"-r{requirements}")
     session_.install(f"django=={django}")
-    session_.install(".")
     session_.run("python", "-m", "pytest")
     requirements.unlink()
 
     try:
-        session_.run("coverage", "run", "--parallel",
-                     "-m", "pytest", *session_.posargs)
+        session_.run("coverage", "run", "--parallel", "-m", "pytest", *session_.posargs)
     finally:
         if session_.interactive:
             session_.notify("coverage")
@@ -138,17 +152,21 @@ def tests(session_: Session, django: str) -> None:
 @nox.parametrize("pyjwt", pyjwt_versions)
 def tests_pyjwt(session_: Session, pyjwt: str) -> None:
     requirements = Path("requirements.txt")
-    session_.run("poetry", "export",
-                 f"-o{requirements}", "--dev", "--without-hashes", external=True)
+    session_.run(
+        "poetry",
+        "export",
+        f"-o{requirements}",
+        "--dev",
+        "--without-hashes",
+        external=True,
+    )
     session_.install(f"-r{requirements}")
     session_.install(f"pyjwt=={pyjwt}")
-    session_.install(".")
     session_.run("python", "-m", "pytest")
     requirements.unlink()
 
     try:
-        session_.run("coverage", "run", "--parallel",
-                     "-m", "pytest", *session_.posargs)
+        session_.run("coverage", "run", "--parallel", "-m", "pytest", *session_.posargs)
     finally:
         if session_.interactive:
             session_.notify("coverage")

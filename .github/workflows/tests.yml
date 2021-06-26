@@ -25,6 +25,13 @@ jobs:
       NOXSESSION: ${{ matrix.session }}
 
     steps:
+      - name: Cache nox evironments
+        uses: actions/cache@v2
+        with:
+          path: .nox
+          key: ${{ runner.os }}-nox-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-nox-
       - name: Check out the repository
         uses: actions/checkout@v2.3.4
 

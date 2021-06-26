@@ -1,6 +1,7 @@
-__all__ = [
-    'exceptions',
-    'settings'
-]
+"""
+JSON Web Token library for Django + Strawberry
+"""
 
-__version__ = '0.3.2'
+__all__ = ["exceptions", "settings"]
+
+__version__ = "0.3.2"

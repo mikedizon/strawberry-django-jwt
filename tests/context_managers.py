@@ -16,9 +16,8 @@ def catch_signal(signal):
 
 @contextmanager
 def back_to_the_future(**kwargs):
-    with mock.patch('strawberry_django_jwt.utils.datetime') as datetime_mock:
-        datetime_mock.utcnow.return_value =\
-            datetime.utcnow() + timedelta(**kwargs)
+    with mock.patch("strawberry_django_jwt.utils.datetime") as datetime_mock:
+        datetime_mock.utcnow.return_value = datetime.utcnow() + timedelta(**kwargs)
         yield datetime_mock
 
 

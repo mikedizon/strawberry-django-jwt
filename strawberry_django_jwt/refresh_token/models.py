@@ -17,20 +17,20 @@ class AbstractRefreshToken(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='refresh_tokens',
-        verbose_name=_('user'),
+        related_name="refresh_tokens",
+        verbose_name=_("user"),
     )
-    token = models.CharField(_('token'), max_length=255, editable=False)
-    created = models.DateTimeField(_('created'), auto_now_add=True)
-    revoked = models.DateTimeField(_('revoked'), null=True, blank=True)
+    token = models.CharField(_("token"), max_length=255, editable=False)
+    created = models.DateTimeField(_("created"), auto_now_add=True)
+    revoked = models.DateTimeField(_("revoked"), null=True, blank=True)
 
     objects = managers.RefreshTokenQuerySet.as_manager()
 
     class Meta:
         abstract = True
-        verbose_name = _('refresh token')
-        verbose_name_plural = _('refresh tokens')
-        unique_together = ('token', 'revoked')
+        verbose_name = _("refresh token")
+        verbose_name_plural = _("refresh tokens")
+        unique_together = ("token", "revoked")
 
     def __str__(self):
         return self.token
@@ -47,7 +47,7 @@ class AbstractRefreshToken(models.Model):
         ).decode()
 
     def get_token(self):
-        if hasattr(self, '_cached_token'):
+        if hasattr(self, "_cached_token"):
             return self._cached_token
         return self.token
 
@@ -57,7 +57,7 @@ class AbstractRefreshToken(models.Model):
 
     def revoke(self, request=None):
         self.revoked = timezone.now()
-        self.save(update_fields=['revoked'])
+        self.save(update_fields=["revoked"])
 
         signals.refresh_token_revoked.send(
             sender=AbstractRefreshToken,
@@ -66,9 +66,9 @@ class AbstractRefreshToken(models.Model):
         )
 
     def reuse(self, request=None):
-        self.token = ''
+        self.token = ""
         self.created = timezone.now()
-        self.save(update_fields=['token', 'created'])
+        self.save(update_fields=["token", "created"])
 
 
 class RefreshToken(AbstractRefreshToken):

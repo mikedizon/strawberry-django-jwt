@@ -27,12 +27,14 @@ class DeleteType:
 
 
 @strawberry.type
-@inject_fields({
-    **{get_user_model().USERNAME_FIELD: (str, "")},
-    **({"origIat": (int, 0)} if jwt_settings.JWT_ALLOW_REFRESH else {}),
-    **({"aud": (str, "")} if jwt_settings.JWT_AUDIENCE else {}),
-    **({"iss": (str, "")} if jwt_settings.JWT_ISSUER else {}),
-})
+@inject_fields(
+    {
+        **{get_user_model().USERNAME_FIELD: (str, "")},
+        **({"origIat": (int, 0)} if jwt_settings.JWT_ALLOW_REFRESH else {}),
+        **({"aud": (str, "")} if jwt_settings.JWT_AUDIENCE else {}),
+        **({"iss": (str, "")} if jwt_settings.JWT_ISSUER else {}),
+    }
+)
 class TokenPayloadType:
     exp: int = 0
     origIat: int = 0
@@ -44,9 +46,11 @@ class PayloadType:
 
 
 @strawberry.type
-@inject_fields({
-    **({"refresh_token": (str, "")} if jwt_settings.JWT_ALLOW_REFRESH else {}),
-})
+@inject_fields(
+    {
+        **({"refresh_token": (str, "")} if jwt_settings.JWT_ALLOW_REFRESH else {}),
+    }
+)
 class TokenDataType:
     payload: TokenPayloadType
     token: str = ""

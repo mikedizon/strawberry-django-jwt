@@ -1,3 +1,5 @@
+from inspect import isawaitable
+
 from django.contrib.auth import authenticate
 from django.contrib.auth.middleware import get_user
 from django.contrib.auth.models import AnonymousUser
@@ -11,15 +13,15 @@ from .utils import get_http_authorization
 from .utils import get_token_argument
 
 __all__ = [
-    'allow_any',
-    'JSONWebTokenMiddleware',
+    "allow_any",
+    "JSONWebTokenMiddleware",
 ]
 
 
 def allow_any(info, **kwargs):
     object_type = getattr(
         info.schema,
-        f'{info.operation.operation.name.lower()}_type',
+        f"{info.operation.operation.name.lower()}_type",
     )
 
     field = info.parent_type.fields.get(info.field_name)
@@ -27,7 +29,7 @@ def allow_any(info, **kwargs):
     if field is None:
         return False
 
-    field_type = getattr(field.type, 'of_type', None)
+    field_type = getattr(field.type, "of_type", None)
     passed = False
 
     if field_type is None:
@@ -45,7 +47,7 @@ def allow_any(info, **kwargs):
 
 
 def _authenticate(request):
-    is_anonymous = not hasattr(request, 'user') or request.user.is_anonymous
+    is_anonymous = not hasattr(request, "user") or request.user.is_anonymous
     return is_anonymous and get_http_authorization(request) is not None
 
 
@@ -78,15 +80,16 @@ class JSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
             if user is not None:
                 context.user = user
 
-            elif hasattr(context, 'user'):
-                if hasattr(context, 'session'):
+            elif hasattr(context, "user"):
+                if hasattr(context, "session"):
                     context.user = get_user(context)
                     self.cached_authentication.insert(info.path, context.user)
                 else:
                     context.user = AnonymousUser()
 
-        if ((_authenticate(context) or token_argument is not None) and
-                self.authenticate_context(info, **kwargs)):
+        if (
+            _authenticate(context) or token_argument is not None
+        ) and self.authenticate_context(info, **kwargs):
 
             user = authenticate(request=context, **kwargs)
 
@@ -110,15 +113,16 @@ class AsyncJSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
             if user is not None:
                 context.user = user
 
-            elif hasattr(context, 'user'):
-                if hasattr(context, 'session'):
+            elif hasattr(context, "user"):
+                if hasattr(context, "session"):
                     context.user = get_user(context)
                     self.cached_authentication.insert(info.path, context.user)
                 else:
                     context.user = AnonymousUser()
 
-        if ((_authenticate(context) or token_argument is not None) and
-                self.authenticate_context(info, **kwargs)):
+        if (
+            _authenticate(context) or token_argument is not None
+        ) and self.authenticate_context(info, **kwargs):
 
             user = await authenticate_async(request=context, **kwargs)
 
@@ -128,4 +132,7 @@ class AsyncJSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
                 if jwt_settings.JWT_ALLOW_ARGUMENT:
                     self.cached_authentication.insert(info.path, user)
 
-        return next_(root, info, **kwargs)
+        result = next_(root, info, **kwargs)
+        if isawaitable(result):
+            return await result
+        return result
