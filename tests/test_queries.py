@@ -3,6 +3,7 @@ import strawberry
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from strawberry.types import Info
+
 from strawberry_django_jwt.decorators import dispose_extra_kwargs
 from strawberry_django_jwt.decorators import login_required
 from strawberry_django_jwt.mixins import OptionalJSONWebTokenMixin
@@ -10,7 +11,6 @@ from strawberry_django_jwt.mixins import RequestInfoMixin
 from strawberry_django_jwt.model_object_types import UserType
 from strawberry_django_jwt.settings import jwt_settings
 from strawberry_django_jwt.shortcuts import get_token
-
 from .decorators import OverrideJwtSettings
 from .testcases import SchemaTestCase
 

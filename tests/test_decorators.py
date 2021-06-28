@@ -34,7 +34,7 @@ class LoginRequiredTests(TestCase):
 
     def test_login_required_no_info(self):
         result = decorators.login_required(
-            lambda src: None,
+            lambda src, info: None,
         )(None, info=self.info(self.user))
 
         self.assertIsNone(result)

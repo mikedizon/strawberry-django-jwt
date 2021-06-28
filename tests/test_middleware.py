@@ -1,10 +1,10 @@
 from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
+
 from strawberry_django_jwt.exceptions import JSONWebTokenError
 from strawberry_django_jwt.middleware import JSONWebTokenMiddleware
 from strawberry_django_jwt.settings import jwt_settings
-
 from .decorators import OverrideJwtSettings
 from .testcases import TestCase
 

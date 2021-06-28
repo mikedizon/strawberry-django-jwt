@@ -18,7 +18,7 @@ from . import object_types
 from .settings import jwt_settings
 
 
-def jwt_payload(user, context=None):
+def jwt_payload(user, _=None):
     username = user.get_username()
 
     if hasattr(username, "pk"):
@@ -43,7 +43,7 @@ def jwt_payload(user, context=None):
     return object_types.TokenPayloadType(**payload)
 
 
-def jwt_encode(payload: object_types.TokenPayloadType, context=None) -> str:
+def jwt_encode(payload: object_types.TokenPayloadType, _=None) -> str:
     token = jwt.encode(
         payload.__dict__,
         jwt_settings.JWT_PRIVATE_KEY or jwt_settings.JWT_SECRET_KEY,
@@ -55,7 +55,7 @@ def jwt_encode(payload: object_types.TokenPayloadType, context=None) -> str:
     return _token
 
 
-def jwt_decode(token: str, context=None) -> object_types.TokenPayloadType:
+def jwt_decode(token: str, _=None) -> object_types.TokenPayloadType:
     return object_types.TokenPayloadType(
         **jwt.decode(
             token,
@@ -83,7 +83,7 @@ def get_http_authorization(context):
     return auth[1]
 
 
-def get_token_argument(request, **kwargs):
+def get_token_argument(_, **kwargs):
     if jwt_settings.JWT_ALLOW_ARGUMENT:
         input_fields = kwargs.get("input")
 
@@ -125,7 +125,7 @@ def get_payload(token, context=None):
 def get_user_by_natural_key(username):
     user_model = get_user_model()
     try:
-        return user_model._default_manager.get_by_natural_key(username)
+        return user_model.objects.get_by_natural_key(username)
     except user_model.DoesNotExist:
         return None
 
@@ -133,9 +133,7 @@ def get_user_by_natural_key(username):
 async def get_user_by_natural_key_async(username):
     user_model = get_user_model()
     try:
-        return await sync_to_async(user_model._default_manager.get_by_natural_key)(
-            username
-        )
+        return await sync_to_async(user_model.objects.get_by_natural_key)(username)
     except user_model.DoesNotExist:
         return None
 
@@ -166,7 +164,7 @@ async def get_user_by_payload_async(payload):
     return user
 
 
-def refresh_has_expired(orig_iat, context=None):
+def refresh_has_expired(orig_iat, _=None):
     exp = orig_iat + jwt_settings.JWT_REFRESH_EXPIRATION_DELTA.total_seconds()
     return timegm(datetime.utcnow().utctimetuple()) > exp
 

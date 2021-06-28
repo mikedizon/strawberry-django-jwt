@@ -109,6 +109,7 @@ def mypy(session_: Session) -> None:
     """Type-check using mypy."""
     args = session_.posargs or ["strawberry_django_jwt", "tests"]
     deps = [
+        ".",
         "mypy",
         "pytest",
         "django-stubs",
