@@ -8,7 +8,8 @@
 ![Codecov](https://img.shields.io/codecov/c/github/KundaPanda/strawberry-django-jwt?style=for-the-badge)
 [![Codacy grade](https://img.shields.io/codacy/grade/aa892e1ed8924429af95d9eeaa495338?style=for-the-badge)](https://www.codacy.com/gh/KundaPanda/strawberry-django-jwt/dashboard?utm_source=github.com&utm_medium=referral&utm_content=KundaPanda/strawberry-django-jwt&utm_campaign=Badge_Grade)
 
-[JSON Web Token](https://jwt.io/>) authentication for [Strawberry Django GraphQL](https://strawberry.rocks/docs/integrations/django)
+[JSON Web Token](https://jwt.io/>) authentication
+for [Strawberry Django GraphQL](https://strawberry.rocks/docs/integrations/django)
 
 ---
 
@@ -109,6 +110,14 @@ substitutes [Graphene](https://graphene-python.org/) GraphQL backend for [Strawb
 
 ---
 
+## Known Issues
+
+- `JWT_ALLOW_ANY_CLASSES`
+  - Only supports return-type based filtering at the moment, because strawberry does not use class-based field
+    definitions (so all superclasses are dropped)
+  - It might be possible to create a workaround by using either a class decorator or by creating a custom graphql
+    scheme that somehow preserves class hierarchy of types
+
 ## Quickstart Documentation
 
 ===============_Work in Progress_===============
@@ -118,7 +127,7 @@ Relay support has been temporarily removed due to lack of experience with Relay
 Most of the features are conceptually the same as those provided
 by [Django GraphQL JWT](https://github.com/flavors/django-graphql-jwt)
 
-### Authenticating fields
+### Authenticating Fields
 
 Fields can be set to auth-only using the `login_required` decorator in combination with `strawberry.field` or
 via `login_field`
@@ -147,7 +156,7 @@ class Query:
 
 Please note the info argument, without which strawberry would not provide the context info required for authentication.
 
-### Mixin info injection
+### Mixin Info Injection
 
 An alternative approach to this problem is following:
 
@@ -183,7 +192,7 @@ class Query(RequestInfoMixin):
 All function arguments that are not present in the definition will be added by the `login_required` decorator to
 the `self` dictionary as kwargs.
 
-### Model mutations
+### Model Mutations
 
 You can add the login_required decorator to them as well
 
@@ -201,7 +210,7 @@ class Mutation(RequestInfoMixin):
     foo_update: FooType = login_required(mutations.delete())
 ```
 
-### Async views
+### Async Views
 
 Should be fully supported :)
 

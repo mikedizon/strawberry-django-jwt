@@ -1,13 +1,16 @@
+from importlib import reload
 from typing import Any
 
 import strawberry
+from asgiref.sync import sync_to_async
+
+import strawberry_django_jwt
 from strawberry_django_jwt.refresh_token.signals import refresh_token_revoked
 from strawberry_django_jwt.refresh_token.signals import refresh_token_rotated
 from strawberry_django_jwt.settings import jwt_settings
 from strawberry_django_jwt.shortcuts import create_refresh_token
 from strawberry_django_jwt.shortcuts import get_refresh_token
 from strawberry_django_jwt.signals import token_issued
-
 from ..context_managers import back_to_the_future
 from ..context_managers import catch_signal
 from ..context_managers import refresh_expired
@@ -20,6 +23,7 @@ class RefreshTokenMutationMixin:
     # noinspection PyPep8Naming
     @OverrideJwtSettings(JWT_LONG_RUNNING_REFRESH_TOKEN=True)
     def setUp(self):
+        reload(strawberry_django_jwt.mutations)
         m = type(
             "jwt",
             (object,),
@@ -54,6 +58,28 @@ class TokenAuthMixin(RefreshTokenMutationMixin):
         self.assertIsNone(response.errors)
         self.assertUsernameIn(data["payload"])
         self.assertEqual(refresh_token.user, self.user)
+
+
+class AsyncTokenAuthMixin(RefreshTokenMutationMixin):
+    async def test_token_auth_async(self):
+        with OverrideJwtSettings(JWT_LONG_RUNNING_REFRESH_TOKEN=True):
+            with catch_signal(token_issued) as token_issued_handler:
+                response = await self.execute(
+                    {
+                        self.user.USERNAME_FIELD: self.user.get_username(),
+                        "password": "dolphins",
+                    }
+                )
+
+            data = response.data["tokenAuth"]
+            refresh_token = await sync_to_async(get_refresh_token)(data["refreshToken"])
+
+        self.assertEqual(token_issued_handler.call_count, 1)
+
+        self.assertIsNone(response.errors)
+        self.assertUsernameIn(data["payload"])
+        user = await sync_to_async(getattr)(refresh_token, "user")
+        self.assertEqual(user, self.user)
 
 
 class RefreshTokenMixin:

@@ -109,3 +109,15 @@ class CSRFRotationTests(TestCase):
         )(self, info_mock)
 
         self.assertTrue(info_mock.context.csrf_cookie_needs_reset)
+
+
+class HelperDecoratorTests(TestCase):
+    @OverrideJwtSettings(JWT_CSRF_ROTATION=True)
+    def test_dispose_extra_kwargs(self):
+        def accept_fn(cls, *args, **kwargs):
+            return {"self": cls, "args": len(args), "kwargs": len(kwargs)}
+
+        result = decorators.dispose_extra_kwargs(accept_fn)(self, 1, 2, x=5, y=6)
+
+        # self is preserved, 1 is disposed as the "None" root object, args are [2, {**kwargs}]
+        self.assertDictEqual(result, {"self": self, "args": 2, "kwargs": 0})

@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 import re
 
@@ -41,7 +42,7 @@ async def authenticate(request=None, **credentials):
         try:
             if hasattr(backend, "authenticate_async"):
                 user = await backend.authenticate_async(request, **credentials)
-            elif inspect.iscoroutinefunction(backend.authenticate):
+            elif asyncio.iscoroutinefunction(backend.authenticate):
                 user = await backend.authenticate(request, **credentials)
             else:
                 if isinstance(request, ASGIRequest):

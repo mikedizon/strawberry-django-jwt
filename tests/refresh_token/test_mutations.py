@@ -1,11 +1,11 @@
 import django
 import strawberry
-import strawberry_django_jwt.mutations
 
+import strawberry_django_jwt.mutations
 from . import mixins
-from ..testcases import SchemaTestCase
 from .mutations import Refresh
 from .testcases import CookieTestCase
+from ..testcases import SchemaTestCase
 
 
 class TokenAuthTests(mixins.TokenAuthMixin, SchemaTestCase):
@@ -113,6 +113,7 @@ class DeleteCookieTests(mixins.DeleteCookieMixin, CookieTestCase):
 
 if django.VERSION[:2] >= (3, 1):
     from .testcases import AsyncCookieTestCase
+    from ..testcases import AsyncSchemaTestCase
 
     class AsyncCookieTokenAuthTests(
         mixins.AsyncCookieTokenAuthMixin, AsyncCookieTestCase
@@ -124,6 +125,23 @@ if django.VERSION[:2] >= (3, 1):
             payload {
                 username
                 origIat
+            }
+            refreshToken
+            refreshExpiresIn
+          }
+        }"""
+
+        refresh_token_mutations = {
+            "token_auth": strawberry_django_jwt.mutations.ObtainJSONWebToken.obtain,
+        }
+
+    class AsyncTokenAuthTests(mixins.AsyncTokenAuthMixin, AsyncSchemaTestCase):
+        query = """
+        mutation TokenAuth($username: String!, $password: String!) {
+          tokenAuth(username: $username, password: $password) {
+            token
+            payload {
+                username
             }
             refreshToken
             refreshExpiresIn

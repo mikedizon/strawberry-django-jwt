@@ -14,7 +14,7 @@ from django.utils.translation import gettext as _
 from . import exceptions
 from . import signals
 from .auth import authenticate
-from .refresh_token.shortcuts import create_refresh_token
+from .refresh_token.shortcuts import create_refresh_token, refresh_token_lazy_async
 from .refresh_token.shortcuts import refresh_token_lazy
 from .settings import jwt_settings
 from .utils import delete_cookie
@@ -126,7 +126,7 @@ async def on_token_auth_resolve_async(values):
             ctx.jwt_refresh_token = await sync_to_async(create_refresh_token)(user)
             payload.refresh_token = ctx.jwt_refresh_token.get_token()
         else:
-            payload.refresh_token = refresh_token_lazy(user)
+            payload.refresh_token = await refresh_token_lazy_async(user)
 
     return payload
 

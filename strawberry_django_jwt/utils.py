@@ -10,8 +10,10 @@ from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from django.utils.translation import gettext as _
+from graphql import GraphQLResolveInfo
 from packaging import version
 from strawberry.django.context import StrawberryDjangoContext
+from strawberry.types import Info
 
 from . import exceptions
 from . import object_types
@@ -209,12 +211,10 @@ def maybe_thenable(obj, on_resolve):
     return on_resolve(obj)
 
 
-def get_context(info: Any) -> Union[HttpRequest, HttpRequest]:
-    if info is None:
-        return HttpRequest()
-    if isinstance(info, StrawberryDjangoContext):
-        return info.request
-    if issubclass(type(info), HttpRequest):
+def get_context(
+    info: Union[HttpRequest, Info[Any, Any], GraphQLResolveInfo]
+) -> Union[HttpRequest, HttpRequest]:
+    if isinstance(info, HttpRequest):
         return info
     ctx = info.context
     if isinstance(ctx, StrawberryDjangoContext):

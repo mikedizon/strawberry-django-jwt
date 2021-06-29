@@ -32,7 +32,7 @@ from .settings import jwt_settings
 from .utils import get_payload, get_context
 
 
-class JSONWebTokenMutation(mixins.OptionalJSONWebTokenMixin):
+class JSONWebTokenMutation(mixins.JSONWebTokenMixin):
     def __init_subclass__(cls):
         super().__init_subclass__()
         user = get_user_model().USERNAME_FIELD

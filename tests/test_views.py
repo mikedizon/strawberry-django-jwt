@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 
 from strawberry_django_jwt.decorators import login_required
 from strawberry_django_jwt.middleware import JSONWebTokenMiddleware
-from strawberry_django_jwt.mixins import OptionalJSONWebTokenMixin
+from strawberry_django_jwt.mixins import JSONWebTokenMixin
 from strawberry_django_jwt.mixins import RequestInfoMixin
 from strawberry_django_jwt.settings import jwt_settings
 from strawberry_django_jwt.shortcuts import get_token
@@ -40,7 +40,7 @@ class ViewsTests(SchemaTestCase):
     client_class = ViewClient
 
     @strawberry.type
-    class Query(RequestInfoMixin, OptionalJSONWebTokenMixin):
+    class Query(RequestInfoMixin, JSONWebTokenMixin):
         @strawberry.field
         @login_required
         def test(self, info) -> str:
@@ -85,6 +85,20 @@ class ViewsTests(SchemaTestCase):
         self.assertEqual(len(response.errors), 1)
         self.assertEqual(response.status_code, 401)
 
+    def test_invalid_query(self):
+        query = """
+        query Test {
+            invalidQuery
+        }
+        """
+
+        response = self.client.execute(query)
+        data = response.data
+
+        self.assertIsNone(data)
+        self.assertEqual(len(response.errors), 1)
+        self.assertEqual(response.status_code, 200)
+
 
 if django.VERSION[:2] >= (3, 1):
     from strawberry_django_jwt.middleware import AsyncJSONWebTokenMiddleware
@@ -116,7 +130,7 @@ if django.VERSION[:2] >= (3, 1):
         client_class = AsyncViewClient
 
         @strawberry.type
-        class Query(RequestInfoMixin, OptionalJSONWebTokenMixin):
+        class Query(RequestInfoMixin, JSONWebTokenMixin):
             @strawberry.field
             @login_required
             async def test(self, info) -> str:
@@ -165,3 +179,17 @@ if django.VERSION[:2] >= (3, 1):
             self.assertIsNone(data)
             self.assertEqual(len(response.errors), 1)
             self.assertEqual(response.status_code, 401)
+
+        async def test_invalid_query_async(self):
+            query = """
+            query Test {
+                invalidQuery
+            }
+            """
+
+            response = await self.client.execute(query)
+            data = response.data
+
+            self.assertIsNone(data)
+            self.assertEqual(len(response.errors), 1)
+            self.assertEqual(response.status_code, 200)

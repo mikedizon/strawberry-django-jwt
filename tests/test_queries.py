@@ -6,7 +6,7 @@ from strawberry.types import Info
 
 from strawberry_django_jwt.decorators import dispose_extra_kwargs
 from strawberry_django_jwt.decorators import login_required
-from strawberry_django_jwt.mixins import OptionalJSONWebTokenMixin
+from strawberry_django_jwt.mixins import JSONWebTokenMixin
 from strawberry_django_jwt.mixins import RequestInfoMixin
 from strawberry_django_jwt.model_object_types import UserType
 from strawberry_django_jwt.settings import jwt_settings
@@ -17,7 +17,7 @@ from .testcases import SchemaTestCase
 
 class QueriesTests(SchemaTestCase):
     @strawberry.type
-    class Query(RequestInfoMixin, OptionalJSONWebTokenMixin):
+    class Query(RequestInfoMixin, JSONWebTokenMixin):
         @strawberry.field
         @dispose_extra_kwargs
         def test(self, info) -> UserType:
@@ -32,7 +32,7 @@ class QueriesTests(SchemaTestCase):
 
     def test_login_required(self):
         @strawberry.type
-        class Query(RequestInfoMixin, OptionalJSONWebTokenMixin):
+        class Query(RequestInfoMixin, JSONWebTokenMixin):
             @strawberry.field
             @login_required
             def test(self) -> str:
@@ -156,7 +156,7 @@ if django.VERSION[:2] >= (3, 1):
 
     class AsyncQueriesTests(AsyncSchemaTestCase):
         @strawberry.type
-        class Query(RequestInfoMixin, OptionalJSONWebTokenMixin):
+        class Query(RequestInfoMixin, JSONWebTokenMixin):
             @strawberry.field
             @dispose_extra_kwargs
             async def test(self, info) -> UserType:
@@ -171,7 +171,7 @@ if django.VERSION[:2] >= (3, 1):
 
         async def test_login_required(self):
             @strawberry.type
-            class Query(RequestInfoMixin, OptionalJSONWebTokenMixin):
+            class Query(RequestInfoMixin, JSONWebTokenMixin):
                 @strawberry.field
                 @login_required
                 async def test(self) -> str:

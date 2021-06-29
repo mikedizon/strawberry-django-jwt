@@ -1,3 +1,6 @@
+import json
+from importlib import reload
+
 import django
 import mock
 import strawberry.django
@@ -9,10 +12,13 @@ from strawberry.django import mutations
 from strawberry.types import Info
 
 import strawberry_django_jwt.mutations
-from strawberry_django_jwt.decorators import login_field
+from strawberry_django_jwt.decorators import login_field, dispose_extra_kwargs
 from strawberry_django_jwt.decorators import login_required
+from strawberry_django_jwt.mixins import JSONWebTokenMixin, RequestInfoMixin
 from strawberry_django_jwt.settings import jwt_settings
+from strawberry_django_jwt.shortcuts import get_token
 from . import mixins
+from .decorators import OverrideJwtSettings
 from .models import MyTestModel
 from .testcases import CookieTestCase
 from .testcases import SchemaTestCase
@@ -68,6 +74,57 @@ class RefreshTests(mixins.RefreshMixin, SchemaTestCase):
     class Mutation:
         refresh_token = strawberry_django_jwt.mutations.Refresh.refresh
 
+    @OverrideJwtSettings(JWT_HIDE_TOKEN_FIELDS=True)
+    def test_hidden_token_fields(self):
+        reload(strawberry_django_jwt.mixins)
+        reload(strawberry_django_jwt.mutations)
+
+        @strawberry.type
+        class Mutation(JSONWebTokenMixin):
+            @strawberry.field
+            @dispose_extra_kwargs
+            def test(self) -> str:
+                return str(self)
+
+        self.client.schema(query=self.Query, mutation=Mutation)
+
+        query = """
+        mutation RefreshToken($token: String) {
+          test(token: $token)
+        }"""
+
+        token = get_token(self.user)
+        response = self.client.execute(query, {"token": token})
+
+        self.assertEqual(response.data.get("test"), "{}")
+
+    @OverrideJwtSettings(JWT_HIDE_TOKEN_FIELDS=False)
+    def test_visible_token_fields(self):
+        reload(strawberry_django_jwt.mixins)
+        reload(strawberry_django_jwt.mutations)
+
+        @strawberry.type
+        class Mutation(JSONWebTokenMixin):
+            @strawberry.field
+            @dispose_extra_kwargs
+            def test(self) -> str:
+                return str(self)
+
+        self.client.schema(query=self.Query, mutation=Mutation)
+
+        query = """
+        mutation RefreshToken($token: String) {
+          test(token: $token)
+        }"""
+
+        token = get_token(self.user)
+        response = self.client.execute(query, {"token": token})
+
+        self.assertEqual(
+            response.data.get("test").replace('"', "'"),
+            json.dumps({"token": token}).replace('"', "'"),
+        )
+
 
 class CookieTokenAuthTests(mixins.CookieTokenAuthMixin, CookieTestCase):
     query = f"""
@@ -87,6 +144,21 @@ class CookieTokenAuthTests(mixins.CookieTokenAuthMixin, CookieTestCase):
 
     def test_token_auth(self):
         return super(CookieTokenAuthTests, self).test_token_auth()
+
+    def test_extended_field(self):
+        @strawberry.type
+        class Mutation(RequestInfoMixin):
+            y: str = strawberry.field()
+
+        self.query = """
+        mutation TokenAuth {
+          y
+        }"""
+        self.client.schema(query=self.Query, mutation=Mutation)
+        response = self.execute()
+
+        # Invalid mutation, only testing if ExtendedStrawberryField can handle fields without base_resolver
+        self.assertEqual(len(response.errors), 1)
 
 
 class CookieRefreshTests(mixins.CookieRefreshMixin, CookieTestCase):
@@ -145,7 +217,11 @@ class LoginLogoutTest(SchemaTestCase):
     }"""
 
     @strawberry.type
-    class Mutation:
+    class AAAAAAAAAAAAAAAAAAAAAAAA:
+        pass
+
+    @strawberry.type
+    class Mutation(AAAAAAAAAAAAAAAAAAAAAAAA):
         token_auth = strawberry_django_jwt.mutations.ObtainJSONWebToken.obtain
         verify_token = strawberry_django_jwt.mutations.Verify.verify
 
@@ -165,6 +241,7 @@ class LoginLogoutTest(SchemaTestCase):
         self.assertIsNone(response.data)
         self.assertEqual(len(response.errors), 1)
 
+    @OverrideJwtSettings(JWT_ALLOW_ARGUMENT=True)
     def test_login_logout(self):
         # Login
         self.query = self.login_query

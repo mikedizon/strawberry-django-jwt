@@ -33,9 +33,6 @@ class BaseStatusHandlingGraphQLView(BaseView):
         for name, value in sub_response.items():
             response[name] = value
 
-        for name, value in sub_response.cookies.items():
-            response.cookies[name] = value
-
         return response
 
 

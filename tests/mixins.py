@@ -1,3 +1,6 @@
+from importlib import reload
+
+import strawberry_django_jwt
 from strawberry_django_jwt.settings import jwt_settings
 from strawberry_django_jwt.shortcuts import get_token
 from strawberry_django_jwt.signals import token_issued
@@ -100,7 +103,8 @@ class RefreshMixin:
 
     @OverrideJwtSettings(JWT_ALLOW_REFRESH=False)
     def test_refresh_error(self):
-        token = get_token(self.user)
+        reload(strawberry_django_jwt.mutations)
+        token = get_token(self.user, origIat=None)
         response = self.execute(
             {
                 "token": token,

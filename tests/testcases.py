@@ -8,6 +8,7 @@ from django.test import RequestFactory
 from django.test import testcases
 from graphql.execution.execute import GraphQLResolveInfo
 from strawberry.django.views import GraphQLView
+
 from strawberry_django_jwt.decorators import jwt_cookie
 from strawberry_django_jwt.settings import jwt_settings
 from strawberry_django_jwt.testcases import JSONWebTokenClient
@@ -33,6 +34,8 @@ class TestCase(UserTestCase):
 
     def info(self, user=None, **headers):
         request = self.request_factory.post("/", **headers)
+        if django.VERSION[:2] == (3, 1):
+            request.META.update({f"HTTP_{k}": v for k, v in headers.items()})
 
         if user is not None:
             request.user = user
@@ -126,6 +129,8 @@ if django.VERSION[:2] >= (3, 1):
 
         def info(self, user=None, **headers):
             request = self.request_factory.post("/", **headers)
+            if django.VERSION[:2] == (3, 1):
+                request.META.update({f"HTTP_{k}": v for k, v in headers.items()})
 
             if user is not None:
                 request.user = user

@@ -40,9 +40,7 @@ class RequestInfoMixin:
 
 class BaseJSONWebTokenMixin:
     @staticmethod
-    def init_fields(cls, field_options: Optional[Dict[str, Dict[str, Any]]] = None):
-        if field_options is None:
-            field_options = {}
+    def init_fields(cls, field_options: Dict[str, Dict[str, Any]]):
         if not settings.jwt_settings.JWT_HIDE_TOKEN_FIELDS:
             for (name, field) in inspect.getmembers(
                 cls, lambda f: isinstance(f, StrawberryField)
@@ -67,18 +65,13 @@ class BaseJSONWebTokenMixin:
 
 class JSONWebTokenMixin(BaseJSONWebTokenMixin):
     def __init_subclass__(cls, **kwargs):
-        cls.init_fields(cls)
-
-
-class OptionalJSONWebTokenMixin(BaseJSONWebTokenMixin):
-    def __init_subclass__(cls, **kwargs):
         cls.init_fields(
             cls,
             {"token": {"is_optional": True}, "refresh_token": {"is_optional": True}},
         )
 
 
-class KeepAliveRefreshMixin(OptionalJSONWebTokenMixin):
+class KeepAliveRefreshMixin(JSONWebTokenMixin):
     @strawberry.mutation
     @setup_jwt_cookie
     @csrf_rotation
@@ -114,7 +107,7 @@ class KeepAliveRefreshMixin(OptionalJSONWebTokenMixin):
         return maybe_thenable((result, token), on_resolve)
 
 
-class RefreshTokenMixin(OptionalJSONWebTokenMixin, RequestInfoMixin):
+class RefreshTokenMixin(JSONWebTokenMixin, RequestInfoMixin):
     @strawberry.mutation
     @setup_jwt_cookie
     @csrf_rotation

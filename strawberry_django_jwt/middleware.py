@@ -15,35 +15,21 @@ from .utils import get_token_argument
 __all__ = [
     "allow_any",
     "JSONWebTokenMiddleware",
+    "AsyncJSONWebTokenMiddleware",
 ]
 
 
 def allow_any(info, **kwargs):
-    object_type = getattr(
-        info.schema,
-        f"{info.operation.operation.name.lower()}_type",
-    )
-
     field = info.parent_type.fields.get(info.field_name)
 
-    if field is None:
-        return False
-
     field_type = getattr(field.type, "of_type", None)
-    passed = False
 
-    if field_type is None:
-        return False
-    for class_type in tuple(jwt_settings.JWT_ALLOW_ANY_CLASSES):
-        # Output type checking
-        if issubclass(class_type, GraphQLType):
-            if isinstance(field_type, class_type):
-                passed = True
-        else:
-            # Subclass checking
-            if issubclass(type(object_type), class_type):
-                passed = True
-    return passed
+    return field_type is not None and any(
+        [
+            issubclass(class_type, GraphQLType) and isinstance(field_type, class_type)
+            for class_type in tuple(jwt_settings.JWT_ALLOW_ANY_CLASSES)
+        ]
+    )
 
 
 def _authenticate(request):
