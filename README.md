@@ -113,8 +113,10 @@ substitutes [Graphene](https://graphene-python.org/) GraphQL backend for [Strawb
 ## Known Issues
 
 - `JWT_ALLOW_ANY_CLASSES`
+
   - Only supports return-type based filtering at the moment, because strawberry does not use class-based field
     definitions (so all superclasses are dropped)
+
   - It might be possible to create a workaround by using either a class decorator or by creating a custom graphql
     scheme that somehow preserves class hierarchy of types
 

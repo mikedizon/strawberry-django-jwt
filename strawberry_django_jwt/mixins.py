@@ -32,7 +32,7 @@ class RequestInfoMixin:
     def __init_subclass__(cls):
         super().__init_subclass__()
         field: StrawberryField
-        for (name, field) in inspect.getmembers(
+        for (__, field) in inspect.getmembers(
             cls, lambda f: isinstance(f, StrawberryField)
         ):
             field.__class__ = ExtendedStrawberryField

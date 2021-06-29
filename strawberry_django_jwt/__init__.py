@@ -1,6 +1,4 @@
-"""
-JSON Web Token library for Django + Strawberry
-"""
+"""JSON Web Token library for Django + Strawberry"""
 
 __all__ = ["exceptions", "settings", "mutations", "mixins", "middleware"]
 
