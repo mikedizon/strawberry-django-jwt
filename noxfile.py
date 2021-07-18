@@ -10,6 +10,7 @@ package = "strawberry_django_jwt"
 python_versions = ["3.9", "3.8", "3.7"]
 django_versions = ["3.0", "3.1", "3.2"]
 pyjwt_versions = ["1.7.1", "2.1.0"]
+strawberry_graphql_versions = ["0.65.0", "latest"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "pre-commit",
@@ -163,6 +164,32 @@ def tests_pyjwt(session_: Session, pyjwt: str) -> None:
     )
     session_.install(f"-r{requirements}")
     session_.install(f"pyjwt=={pyjwt}")
+    session_.run("python", "-m", "pytest")
+    requirements.unlink()
+
+    try:
+        session_.run("coverage", "run", "--parallel", "-m", "pytest", *session_.posargs)
+    finally:
+        if session_.interactive:
+            session_.notify("coverage")
+
+
+@session(python="3.9")
+@nox.parametrize("strawberry-graphql", strawberry_graphql_versions)
+def tests_strawberry_graphql(session_: Session, strawberry: str) -> None:
+    requirements = Path("requirements.txt")
+    session_.run(
+        "poetry",
+        "export",
+        f"-o{requirements}",
+        "--dev",
+        "--without-hashes",
+        external=True,
+    )
+    session_.install(f"-r{requirements}")
+    session_.install(
+        f"strawberry-graphql{f'=={strawberry}' if strawberry != 'latest' else '-U'}"
+    )
     session_.run("python", "-m", "pytest")
     requirements.unlink()
 

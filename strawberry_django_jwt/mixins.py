@@ -1,10 +1,17 @@
 import inspect
+import sys
+
+if sys.version_info.minor <= 7:
+    from importlib_metadata import version
+else:
+    from importlib.metadata import version
 from typing import Any
 from typing import Dict
 from typing import Optional
 
 import strawberry
 from django.utils.translation import gettext as _
+from packaging.version import parse
 from strawberry.arguments import StrawberryArgument
 from strawberry.field import StrawberryField
 
@@ -35,7 +42,8 @@ class RequestInfoMixin:
         for (__, field) in inspect.getmembers(
             cls, lambda f: isinstance(f, StrawberryField)
         ):
-            field.__class__ = ExtendedStrawberryField
+            if parse(version("strawberry-graphql")) < parse("0.68.1"):  # type: ignore
+                field.__class__ = ExtendedStrawberryField
 
 
 class BaseJSONWebTokenMixin:

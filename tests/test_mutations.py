@@ -217,11 +217,7 @@ class LoginLogoutTest(SchemaTestCase):
     }"""
 
     @strawberry.type
-    class AAAAAAAAAAAAAAAAAAAAAAAA:
-        pass
-
-    @strawberry.type
-    class Mutation(AAAAAAAAAAAAAAAAAAAAAAAA):
+    class Mutation:
         token_auth = strawberry_django_jwt.mutations.ObtainJSONWebToken.obtain
         verify_token = strawberry_django_jwt.mutations.Verify.verify
 

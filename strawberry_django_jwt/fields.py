@@ -4,6 +4,10 @@ from strawberry.field import StrawberryField
 
 
 class ExtendedStrawberryField(StrawberryField):
+    """
+    Only for strawberry-graphql < 0.68.1
+    """
+
     def get_result(
         self, source: Any, info: Any, kwargs: Dict[str, Any]
     ) -> Union[Awaitable[Any], Any]:
