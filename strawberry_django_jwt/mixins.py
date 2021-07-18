@@ -1,17 +1,10 @@
 import inspect
-import sys
-
-if sys.version_info.minor <= 7:
-    from importlib_metadata import version
-else:
-    from importlib.metadata import version
 from typing import Any
 from typing import Dict
 from typing import Optional
 
 import strawberry
 from django.utils.translation import gettext as _
-from packaging.version import parse
 from strawberry.arguments import StrawberryArgument
 from strawberry.field import StrawberryField
 
@@ -21,7 +14,6 @@ from .decorators import csrf_rotation
 from .decorators import ensure_token
 from .decorators import refresh_expiration
 from .decorators import setup_jwt_cookie
-from .fields import ExtendedStrawberryField
 from .object_types import TokenDataType
 from .refresh_token import signals as refresh_signals
 from .refresh_token.decorators import ensure_refresh_token
@@ -33,17 +25,6 @@ from .signals import token_refreshed
 from .utils import get_payload, get_context
 from .utils import get_user_by_payload
 from .utils import maybe_thenable
-
-
-class RequestInfoMixin:
-    def __init_subclass__(cls):
-        super().__init_subclass__()
-        field: StrawberryField
-        for (__, field) in inspect.getmembers(
-            cls, lambda f: isinstance(f, StrawberryField)
-        ):
-            if parse(version("strawberry-graphql")) < parse("0.68.1"):  # type: ignore
-                field.__class__ = ExtendedStrawberryField
 
 
 class BaseJSONWebTokenMixin:
@@ -115,7 +96,7 @@ class KeepAliveRefreshMixin(JSONWebTokenMixin):
         return maybe_thenable((result, token), on_resolve)
 
 
-class RefreshTokenMixin(JSONWebTokenMixin, RequestInfoMixin):
+class RefreshTokenMixin(JSONWebTokenMixin):
     @strawberry.mutation
     @setup_jwt_cookie
     @csrf_rotation

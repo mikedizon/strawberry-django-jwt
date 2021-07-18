@@ -18,6 +18,7 @@ nox.options.sessions = (
     "mypy",
     "tests",
     "tests_pyjwt",
+    "tests_strawberry_graphql",
     "coverage",
 )
 nox.options.reuse_existing_virtualenvs = True
@@ -175,9 +176,11 @@ def tests_pyjwt(session_: Session, pyjwt: str) -> None:
 
 
 @session(python="3.9")
-@nox.parametrize("strawberry-graphql", strawberry_graphql_versions)
+@nox.parametrize("strawberry", strawberry_graphql_versions)
 def tests_strawberry_graphql(session_: Session, strawberry: str) -> None:
     requirements = Path("requirements.txt")
+    session_.run("poetry", "add", f"strawberry-graphql@{strawberry}")
+    session_.run("poetry", "update")
     session_.run(
         "poetry",
         "export",
@@ -187,9 +190,6 @@ def tests_strawberry_graphql(session_: Session, strawberry: str) -> None:
         external=True,
     )
     session_.install(f"-r{requirements}")
-    session_.install(
-        f"strawberry-graphql{f'=={strawberry}' if strawberry != 'latest' else '-U'}"
-    )
     session_.run("python", "-m", "pytest")
     requirements.unlink()
 

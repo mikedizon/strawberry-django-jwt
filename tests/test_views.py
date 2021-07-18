@@ -7,7 +7,6 @@ from django.contrib.auth import get_user_model
 from strawberry_django_jwt.decorators import login_required
 from strawberry_django_jwt.middleware import JSONWebTokenMiddleware
 from strawberry_django_jwt.mixins import JSONWebTokenMixin
-from strawberry_django_jwt.mixins import RequestInfoMixin
 from strawberry_django_jwt.settings import jwt_settings
 from strawberry_django_jwt.shortcuts import get_token
 from strawberry_django_jwt.testcases import JSONWebTokenClient
@@ -40,7 +39,7 @@ class ViewsTests(SchemaTestCase):
     client_class = ViewClient
 
     @strawberry.type
-    class Query(RequestInfoMixin, JSONWebTokenMixin):
+    class Query(JSONWebTokenMixin):
         @strawberry.field
         @login_required
         def test(self, info) -> str:
@@ -130,7 +129,7 @@ if django.VERSION[:2] >= (3, 1):
         client_class = AsyncViewClient
 
         @strawberry.type
-        class Query(RequestInfoMixin, JSONWebTokenMixin):
+        class Query(JSONWebTokenMixin):
             @strawberry.field
             @login_required
             async def test(self, info) -> str:

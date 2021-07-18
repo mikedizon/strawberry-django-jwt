@@ -9,7 +9,6 @@ from . import mixins
 from .decorators import dispose_extra_kwargs
 from .decorators import ensure_token
 from .decorators import token_auth
-from .mixins import RequestInfoMixin
 from .object_types import DeleteType
 from .object_types import PayloadType
 from .object_types import TokenDataType
@@ -48,7 +47,7 @@ class JSONWebTokenMutation(mixins.JSONWebTokenMixin):
             )
 
 
-class ObtainJSONWebToken(RequestInfoMixin, JSONWebTokenMutation):
+class ObtainJSONWebToken(JSONWebTokenMutation):
     """Obtain JSON Web Token mutation"""
 
     @strawberry.mutation
@@ -58,7 +57,7 @@ class ObtainJSONWebToken(RequestInfoMixin, JSONWebTokenMutation):
         return TokenDataType(payload=TokenPayloadType())
 
 
-class Verify(RequestInfoMixin):
+class Verify:
     @strawberry.mutation
     @ensure_token
     def verify(self, info, token: str) -> PayloadType:
@@ -69,7 +68,7 @@ class Refresh(mixins.RefreshMixin):
     pass
 
 
-class DeleteJSONWebTokenCookie(RequestInfoMixin):
+class DeleteJSONWebTokenCookie:
     @strawberry.mutation
     def delete_cookie(self, info) -> DeleteType:
         ctx = get_context(info)

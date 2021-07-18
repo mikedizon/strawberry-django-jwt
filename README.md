@@ -8,7 +8,8 @@
 ![Codecov](https://img.shields.io/codecov/c/github/KundaPanda/strawberry-django-jwt?style=for-the-badge)
 [![Codacy grade](https://img.shields.io/codacy/grade/aa892e1ed8924429af95d9eeaa495338?style=for-the-badge)](https://www.codacy.com/gh/KundaPanda/strawberry-django-jwt/dashboard?utm_source=github.com&utm_medium=referral&utm_content=KundaPanda/strawberry-django-jwt&utm_campaign=Badge_Grade)
 
-[JSON Web Token](https://jwt.io/>) authentication for [Strawberry Django GraphQL](https://strawberry.rocks/docs/integrations/django)
+[JSON Web Token](https://jwt.io/>) authentication
+for [Strawberry Django GraphQL](https://strawberry.rocks/docs/integrations/django)
 
 ---
 
@@ -137,15 +138,12 @@ via `login_field`
 import strawberry
 from strawberry.types import Info
 from strawberry_django_jwt.decorators import login_required
-
-
-def auth_field(fn=None):
-    return strawberry.field(login_required(fn))
+from strawberry_django_jwt.decorators import login_field
 
 
 @strawberry.type
 class Query:
-    @auth_field
+    @login_field
     def hello(self, info: Info) -> str:
         return "World"
 
@@ -153,45 +151,18 @@ class Query:
     @login_required
     def foo(self, info: Info) -> str:
         return "Bar"
-```
-
-Please note the info argument, without which strawberry would not provide the context info required for authentication.
-
-### Mixin Info Injection
-
-An alternative approach to this problem is following:
-
-```python
-import strawberry
-from strawberry.types import Info
-from strawberry_django_jwt.decorators import login_required, login_field
-from strawberry_django_jwt.mixins import RequestInfoMixin
-
-
-@strawberry.type
-class Query(RequestInfoMixin):
-    @login_field
-    def hello(self) -> str:
-        # self == { 'info': ... } in this case
-        return "World"
 
     @strawberry.field
     @login_required
-    def foo(self) -> str:
-        # self == { 'info': ... } in this case
-        return self.get("info").field_name
-
-    @strawberry.field
-    @login_required
-    def explicit_foo(self, info: Info) -> str:
-        # self == { } in this case
-        return info.field_name
+    def foo2(self) -> str:
+        return "Bar2"
 ```
 
-`RequestInfoMixin` automatically injects info arguments to all fields in the class.
+The info argument is optional. If not provided, the login_required decorator decorates the resolver function with a
+custom function with info.
 
-All function arguments that are not present in the definition will be added by the `login_required` decorator to
-the `self` dictionary as kwargs.
+All required function arguments that are not present in the definition (atm. only info) will be added by
+the `login_required` decorator to the `self` dictionary as kwargs.
 
 ### Model Mutations
 
@@ -200,12 +171,11 @@ You can add the login_required decorator to them as well
 ```python
 import strawberry
 from strawberry_django_jwt.decorators import login_required
-from strawberry_django_jwt.mixins import RequestInfoMixin
 from strawberry.django import mutations
 
 
 @strawberry.type
-class Mutation(RequestInfoMixin):
+class Mutation:
     foo_create: FooType = login_required(mutations.create(FooInput))
     foo_delete: FooType = login_required(mutations.update(FooPartialInput))
     foo_update: FooType = login_required(mutations.delete())
@@ -218,11 +188,10 @@ Should be fully supported :)
 ```python
 import strawberry
 from strawberry_django_jwt.decorators import login_field
-from strawberry_django_jwt.mixins import RequestInfoMixin
 
 
 @strawberry.type
-class Query(RequestInfoMixin):
+class Query:
     @login_field
     async def foo(self) -> str:
         return "bar"
