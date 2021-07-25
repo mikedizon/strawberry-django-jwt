@@ -5,7 +5,6 @@ from typing import Optional
 
 import strawberry
 from django.utils.translation import gettext as _
-from strawberry.arguments import StrawberryArgument
 from strawberry.field import StrawberryField
 
 from . import exceptions
@@ -22,6 +21,7 @@ from .refresh_token.shortcuts import create_refresh_token
 from .refresh_token.shortcuts import get_refresh_token
 from .refresh_token.shortcuts import refresh_token_lazy
 from .signals import token_refreshed
+from .utils import create_strawberry_argument
 from .utils import get_payload, get_context
 from .utils import get_user_by_payload
 from .utils import maybe_thenable
@@ -35,13 +35,13 @@ class BaseJSONWebTokenMixin:
                 cls, lambda f: isinstance(f, StrawberryField)
             ):
                 field.arguments.append(
-                    StrawberryArgument(
+                    create_strawberry_argument(
                         "token", "token", str, **field_options.get("token", {})
                     )
                 )
                 if settings.jwt_settings.JWT_LONG_RUNNING_REFRESH_TOKEN:
                     field.arguments.append(
-                        StrawberryArgument(
+                        create_strawberry_argument(
                             "refresh_token",
                             "refresh_token",
                             str,

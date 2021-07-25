@@ -2,7 +2,6 @@ import inspect
 
 import strawberry
 from django.contrib.auth import get_user_model
-from strawberry.arguments import StrawberryArgument
 from strawberry.field import StrawberryField
 
 from . import mixins
@@ -28,7 +27,7 @@ __all__ = [
 
 from .settings import jwt_settings
 
-from .utils import get_payload, get_context
+from .utils import get_payload, get_context, create_strawberry_argument
 
 
 class JSONWebTokenMutation(mixins.JSONWebTokenMixin):
@@ -41,8 +40,8 @@ class JSONWebTokenMutation(mixins.JSONWebTokenMixin):
         ):
             field.arguments.extend(
                 [
-                    StrawberryArgument(user, user, str),
-                    StrawberryArgument("password", "password", str),
+                    create_strawberry_argument(user, user, str),
+                    create_strawberry_argument("password", "password", str),
                 ]
             )
 
