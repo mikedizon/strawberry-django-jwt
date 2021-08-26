@@ -46,16 +46,9 @@ def login_required(target):
         return target(self, *args, **kwargs)
 
     # get_result is used by strawberry-graphql-django model mutations
-    get_result = next(
-        (
-            name
-            for (name, _) in inspect.getmembers(target, inspect.ismethod)
-            if name == "get_result"
-        ),
-        None,
-    )
+    get_result = getattr(target, "get_result", None)
 
-    if get_result is not None:
+    if get_result is not None and callable(get_result):
         target.get_result = login_required(target.get_result)
         return target
 

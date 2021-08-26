@@ -1,4 +1,3 @@
-import sys
 from calendar import timegm
 from datetime import datetime
 from inspect import isawaitable
@@ -13,6 +12,7 @@ from django.http import HttpRequest
 from django.utils.translation import gettext as _
 from graphql import GraphQLResolveInfo
 from packaging.version import parse as parse_ver
+from strawberry.annotation import StrawberryAnnotation  # type: ignore
 from strawberry.arguments import StrawberryArgument
 from strawberry.django.context import StrawberryDjangoContext
 from strawberry.types import Info
@@ -21,30 +21,13 @@ from . import exceptions
 from . import object_types
 from .settings import jwt_settings
 
-if sys.version_info < (3, 8, 0):
-    from importlib_metadata import version
-else:
-    from importlib.metadata import version
 
-if parse_ver(version("strawberry-graphql")) < parse_ver("0.69.0"):
-
-    def create_strawberry_argument(
-        python_name: str, graphql_name: str, type_: Type[Any], **options
-    ):
-        return StrawberryArgument(python_name, graphql_name, type_, **options)
-
-
-else:
-    from strawberry.annotation import StrawberryAnnotation  # type: ignore
-
-    def create_strawberry_argument(
-        python_name: str, graphql_name: str, type_: Type[Any], **options
-    ):
-        if options.get("is_optional"):
-            type_ = Optional[type_]  # type: ignore
-        return StrawberryArgument(
-            python_name, graphql_name, StrawberryAnnotation(type_)
-        )
+def create_strawberry_argument(
+    python_name: str, graphql_name: str, type_: Type[Any], **options
+):
+    if options.get("is_optional"):
+        type_ = Optional[type_]  # type: ignore
+    return StrawberryArgument(python_name, graphql_name, StrawberryAnnotation(type_))
 
 
 def jwt_payload(user, _=None):
