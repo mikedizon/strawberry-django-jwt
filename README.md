@@ -44,12 +44,11 @@ substitutes [Graphene](https://graphene-python.org/) GraphQL backend for [Strawb
    from strawberry_django_jwt.middleware import JSONWebTokenMiddleware, AsyncJSONWebTokenMiddleware
    from strawberry import Schema
 
-   schema = Schema(...)
-   schema.middleware.extend([
-        # !! IMPORTANT !!
-        # Pick only one, async middleware is needed when using AsyncGraphQLSchema
-        JSONWebTokenMiddleware(),
-        AsyncJSONWebTokenMiddleware(),
+   # !! IMPORTANT !!
+   # Pick only one, async middleware is needed when using AsyncGraphQLSchema
+   schema = Schema(..., extensions=[
+      JSONWebTokenMiddleware,
+      AsyncJSONWebTokenMiddleware,
    ])
    ```
 

@@ -23,7 +23,7 @@ class SchemaRequestFactory(RequestFactory):
         self._middleware = middleware
 
     def _setup_middleware(self):
-        self._schema.middleware = [m() for m in self._middleware]
+        self._schema.extensions = [m for m in self._middleware]
 
     def execute(self, query, **options):
         self._setup_middleware()
@@ -86,7 +86,7 @@ if django.VERSION[:2] >= (3, 1):
             self._middleware = middleware
 
         def _setup_middleware(self):
-            self._schema.middleware = [m() for m in self._middleware]
+            self._schema.extensions = [m for m in self._middleware]
 
         def execute(self, query, **options):
             self._setup_middleware()

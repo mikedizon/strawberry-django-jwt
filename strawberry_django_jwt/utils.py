@@ -8,6 +8,7 @@ from typing import cast
 import jwt
 from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
+from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpRequest
 from django.utils.translation import gettext as _
 from graphql import GraphQLResolveInfo
@@ -223,7 +224,7 @@ def maybe_thenable(obj, on_resolve):
 
 def get_context(
     info: Union[HttpRequest, Info[Any, Any], GraphQLResolveInfo]
-) -> Union[HttpRequest, HttpRequest]:
+) -> Union[HttpRequest, WSGIRequest]:
     if isinstance(info, HttpRequest):
         return info
     ctx = info.context

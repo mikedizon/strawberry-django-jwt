@@ -178,11 +178,15 @@ clikit = ">=0.6.0,<0.7.0"
 
 [[package]]
 name = "click"
-version = "7.1.2"
+version = "8.0.1"
 description = "Composable command line interface toolkit"
 category = "main"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+python-versions = ">=3.6"
+
+[package.dependencies]
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
+importlib-metadata = {version = "*", markers = "python_version < \"3.8\""}
 
 [[package]]
 name = "clikit"
@@ -201,7 +205,7 @@ pylev = ">=1.3,<2.0"
 name = "colorama"
 version = "0.4.4"
 description = "Cross-platform colored terminal text."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
@@ -946,7 +950,7 @@ requests = ">=2.0.1,<3.0.0"
 
 [[package]]
 name = "ruamel.yaml"
-version = "0.17.14"
+version = "0.17.15"
 description = "ruamel.yaml is a YAML parser/emitter that supports roundtrip preservation of comments, seq/map flow style, and map key order"
 category = "dev"
 optional = false
@@ -1019,7 +1023,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "strawberry-graphql"
-version = "0.73.9"
+version = "0.74.1"
 description = "A library for creating GraphQL APIs"
 category = "main"
 optional = false
@@ -1027,7 +1031,7 @@ python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
 cached-property = ">=1.5.2,<2.0.0"
-click = ">=7.0,<8.0"
+click = ">=7.0,<9.0"
 graphql-core = ">=3.1.0,<3.2.0"
 pygments = ">=2.3,<3.0"
 python-dateutil = ">=2.7.0,<3.0.0"
@@ -1207,7 +1211,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "256803b0038ff694e7e0bbab763320ba1bcb2d584eda26b06835089f971d50d5"
+content-hash = "f38fe7ec5d697b9b7a308d2a24dbab9a051c42ee75ce8a219a0b23cbd0f5a442"
 
 [metadata.files]
 argcomplete = [
@@ -1314,8 +1318,8 @@ cleo = [
     {file = "cleo-0.8.1.tar.gz", hash = "sha256:3d0e22d30117851b45970b6c14aca4ab0b18b1b53c8af57bed13208147e4069f"},
 ]
 click = [
-    {file = "click-7.1.2-py2.py3-none-any.whl", hash = "sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc"},
-    {file = "click-7.1.2.tar.gz", hash = "sha256:d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a"},
+    {file = "click-8.0.1-py3-none-any.whl", hash = "sha256:fba402a4a47334742d782209a7c79bc448911afe1149d07bdabdf480b3e2f4b6"},
+    {file = "click-8.0.1.tar.gz", hash = "sha256:8c04c11192119b1ef78ea049e0a6f0463e4c48ef00a30160c704337586f3ad7a"},
 ]
 clikit = [
     {file = "clikit-0.6.2-py2.py3-none-any.whl", hash = "sha256:71268e074e68082306e23d7369a7b99f824a0ef926e55ba2665e911f7208489e"},
@@ -1731,8 +1735,8 @@ requests-toolbelt = [
     {file = "requests_toolbelt-0.9.1-py2.py3-none-any.whl", hash = "sha256:380606e1d10dc85c3bd47bf5a6095f815ec007be7a8b69c878507068df059e6f"},
 ]
 "ruamel.yaml" = [
-    {file = "ruamel.yaml-0.17.14-py3-none-any.whl", hash = "sha256:b59c548ba6a2a99a97a842db2321c5adf28470d1decb04bdd82ce9535936a2fa"},
-    {file = "ruamel.yaml-0.17.14.tar.gz", hash = "sha256:4185fcfa9e037fea9ffd0bb6172354a03ec98c21e462355d72e068c74e493512"},
+    {file = "ruamel.yaml-0.17.15-py3-none-any.whl", hash = "sha256:c61a0d2d01a64094f0843e2721968e5ee2de93fc220ab6eeae2d1bd121e6e2b3"},
+    {file = "ruamel.yaml-0.17.15.tar.gz", hash = "sha256:7c64b97d4f4588410f19c4f259e4f724803b1981334654f516936f5c5710fe2a"},
 ]
 "ruamel.yaml.clib" = [
     {file = "ruamel.yaml.clib-0.2.6-cp35-cp35m-macosx_10_6_intel.whl", hash = "sha256:cfdb9389d888c5b74af297e51ce357b800dd844898af9d4a547ffc143fa56751"},
@@ -1778,8 +1782,8 @@ sqlparse = [
     {file = "sqlparse-0.4.1.tar.gz", hash = "sha256:0f91fd2e829c44362cbcfab3e9ae12e22badaa8a29ad5ff599f9ec109f0454e8"},
 ]
 strawberry-graphql = [
-    {file = "strawberry-graphql-0.73.9.tar.gz", hash = "sha256:27bb4f0cd865993d1ef79f2d9badf27c2b82b8bcea6063af3b07ff8ef31592c5"},
-    {file = "strawberry_graphql-0.73.9-py3-none-any.whl", hash = "sha256:1af4d3f46c4a6f7b8318ca05e458f4e85aff1b5fc56b4fb791f141d459aeb61e"},
+    {file = "strawberry-graphql-0.74.1.tar.gz", hash = "sha256:758e244d895f17ae3ebde24caf077c08204cc1998e9b8bff17e3b1e8a84da302"},
+    {file = "strawberry_graphql-0.74.1-py3-none-any.whl", hash = "sha256:d6ebc060258e2db83aaba0b3bd99107baf5f54a6bee1ebcb949a022bfc89bd9a"},
 ]
 strawberry-graphql-django = [
     {file = "strawberry-graphql-django-0.2.5.tar.gz", hash = "sha256:483d97c24ce440a1e3cb92ec3e1fdc0cf534d9afa79600396b0a27a5d9d97793"},

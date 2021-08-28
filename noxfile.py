@@ -10,7 +10,7 @@ package = "strawberry_django_jwt"
 python_versions = ["3.9", "3.8", "3.7"]
 django_versions = ["3.0", "3.1", "3.2"]
 pyjwt_versions = ["1.7.1", "2.1.0"]
-strawberry_graphql_versions = ["0.69.0", "0.73.9"]
+strawberry_graphql_versions = ["0.69.0", "latest"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "pre-commit",

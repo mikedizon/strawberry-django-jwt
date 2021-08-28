@@ -1,9 +1,12 @@
 from inspect import isawaitable
+from typing import Set, Any
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.middleware import get_user
 from django.contrib.auth.models import AnonymousUser
 from graphql import GraphQLType
+from strawberry.extensions import Extension
+from strawberry.types import ExecutionContext
 
 from .auth import authenticate as authenticate_async
 from .path import PathDict
@@ -37,9 +40,10 @@ def _authenticate(request):
     return is_anonymous and get_http_authorization(request) is not None
 
 
-class BaseJSONWebTokenMiddleware:
-    def __init__(self):
-        self.cached_allow_any = set()
+class BaseJSONWebTokenMiddleware(Extension):
+    def __init__(self, *, execution_context: ExecutionContext):
+        super().__init__(execution_context=execution_context)
+        self.cached_allow_any: Set[Any] = set()
 
         if jwt_settings.JWT_ALLOW_ARGUMENT:
             self.cached_authentication = PathDict()
