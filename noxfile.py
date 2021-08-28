@@ -179,8 +179,6 @@ def tests_pyjwt(session_: Session, pyjwt: str) -> None:
 @nox.parametrize("strawberry", strawberry_graphql_versions)
 def tests_strawberry_graphql(session_: Session, strawberry: str) -> None:
     requirements = Path("requirements.txt")
-    session_.run("poetry", "add", f"strawberry-graphql@{strawberry}")
-    session_.run("poetry", "update")
     session_.run(
         "poetry",
         "export",
@@ -190,6 +188,10 @@ def tests_strawberry_graphql(session_: Session, strawberry: str) -> None:
         external=True,
     )
     session_.install(f"-r{requirements}")
+    if strawberry == "latest":
+        session_.install("strawberry-graphql", "-U")
+    else:
+        session_.install(f"strawberry-graphql=={strawberry}")
     session_.run("python", "-m", "pytest")
     requirements.unlink()
 
