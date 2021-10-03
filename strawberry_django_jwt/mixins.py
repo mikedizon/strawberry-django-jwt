@@ -33,7 +33,7 @@ class BaseJSONWebTokenMixin:
     @staticmethod
     def init_fields(cls, field_options: Dict[str, Dict[str, Any]]):
         if not settings.jwt_settings.JWT_HIDE_TOKEN_FIELDS:
-            for (field_name, field) in inspect.getmembers(
+            for (__, field) in inspect.getmembers(
                 cls, lambda f: isinstance(f, StrawberryField)
             ):
                 if field.type_annotation is None and isinstance(
