@@ -1,5 +1,9 @@
+from typing import List
+
 import django
+import pytest
 import strawberry
+import strawberry_django
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from strawberry.types import Info
@@ -12,6 +16,7 @@ from strawberry_django_jwt.settings import jwt_settings
 from strawberry_django_jwt.shortcuts import get_token
 from .decorators import OverrideJwtSettings
 from .testcases import SchemaTestCase
+from .types import MyTestModel
 
 
 class QueriesTests(SchemaTestCase):
@@ -148,6 +153,70 @@ class QueriesTests(SchemaTestCase):
         self.assertEqual(response.data["testAllowAny"].get("username"), "")
         self.assertIsNone(response.data["testInvalidToken"].get("id"), AnonymousUser)
         self.assertEqual(response.data["testInvalidToken"].get("username"), "")
+
+    def test_strawberry_graphql_django_fields(self):
+        @strawberry.type
+        class Query(JSONWebTokenMixin):
+            @strawberry_django.field
+            @login_required
+            def test(self) -> str:
+                return "TEST"
+
+            def test2_resolver(self) -> str:
+                return "TEST2"
+
+            test2 = strawberry_django.field(login_required(test2_resolver))
+
+            @strawberry.field
+            @login_required
+            def test_info(self, info: Info) -> str:
+                return "TEST-INFO"
+
+        self.client.schema(query=Query, mutation=self.Mutation)
+
+        query = """
+        query Test {
+            test
+            testInfo
+        }
+        """
+
+        headers = {
+            jwt_settings.JWT_AUTH_HEADER_NAME: f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
+        }
+
+        response = self.client.execute(query, **headers)
+        data = response.data
+
+        self.assertEqual(data["test"], "TEST")
+        self.assertIsNone(response.errors)
+
+    @pytest.mark.django_db
+    def test_strawberry_graphql_django_model_fields(self):
+        @strawberry.type
+        class Query(JSONWebTokenMixin):
+            # test_model: List[MyTestModel] = strawberry_django.field()
+            test_model: List[MyTestModel] = login_required(strawberry_django.field())
+
+        self.client.schema(query=Query, mutation=self.Mutation)
+
+        query = """
+        query Test {
+            testModel {
+                test
+            }
+        }
+        """
+
+        headers = {
+            jwt_settings.JWT_AUTH_HEADER_NAME: f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
+        }
+
+        response = self.client.execute(query, **headers)
+        data = response.data
+
+        self.assertEqual(data["testModel"], [])
+        self.assertIsNone(response.errors)
 
 
 if django.VERSION[:2] >= (3, 1):

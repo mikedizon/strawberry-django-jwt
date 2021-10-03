@@ -26,9 +26,17 @@ from .settings import jwt_settings
 def create_strawberry_argument(
     python_name: str, graphql_name: str, type_: Type[Any], **options
 ):
+    return StrawberryArgument(
+        python_name,
+        graphql_name,
+        StrawberryAnnotation(create_argument_type(type_, **options)),
+    )
+
+
+def create_argument_type(type_: Type[Any], **options):
     if options.get("is_optional"):
         type_ = Optional[type_]  # type: ignore
-    return StrawberryArgument(python_name, graphql_name, StrawberryAnnotation(type_))
+    return type_
 
 
 def jwt_payload(user, _=None):

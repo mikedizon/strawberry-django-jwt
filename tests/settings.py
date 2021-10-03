@@ -5,11 +5,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "strawberry_django_jwt.refresh_token.apps.RefreshTokenConfig",
+    "tests",
 ]
 
 DATABASES = {
-    "default": {"ENGINE": "django.db.backends.sqlite3", "LOCATION": ":memory:"},
+    "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"},
 }
+
+MIGRATION_MODULES = {"tests": "tests.migrations"}
 
 SECRET_KEY = "test"
 

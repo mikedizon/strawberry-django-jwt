@@ -322,6 +322,8 @@ def dispose_extra_kwargs(fn):
         passed_kwargs = {k: v for k, v in kwargs_.items() if k in present}
         if src:
             return fn(src, root, *args_, **passed_kwargs)
+        if not root:
+            return fn(src, *args_, **passed_kwargs)
         return fn(root, *args_, **passed_kwargs)
 
     return wrapper

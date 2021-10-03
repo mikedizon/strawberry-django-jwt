@@ -6,6 +6,7 @@ from typing import Optional
 import strawberry
 from django.utils.translation import gettext as _
 from strawberry.field import StrawberryField
+from strawberry_django.fields.field import StrawberryDjangoField
 
 from . import exceptions
 from . import settings
@@ -13,6 +14,7 @@ from .decorators import csrf_rotation
 from .decorators import ensure_token
 from .decorators import refresh_expiration
 from .decorators import setup_jwt_cookie
+from .fields import StrawberryDjangoTokenField, StrawberryDjangoRefreshTokenField
 from .object_types import TokenDataType
 from .refresh_token import signals as refresh_signals
 from .refresh_token.decorators import ensure_refresh_token
@@ -31,9 +33,29 @@ class BaseJSONWebTokenMixin:
     @staticmethod
     def init_fields(cls, field_options: Dict[str, Dict[str, Any]]):
         if not settings.jwt_settings.JWT_HIDE_TOKEN_FIELDS:
-            for (__, field) in inspect.getmembers(
+            for (field_name, field) in inspect.getmembers(
                 cls, lambda f: isinstance(f, StrawberryField)
             ):
+                if field.type_annotation is None and isinstance(
+                    field, StrawberryDjangoField
+                ):
+                    # StrawberryDjangoFields resolve their arguments after strawberry decorator is applied.
+                    # It is necessary to add subclasses to the field class which provide required arguments when
+                    #   fields are collected.
+                    base_types = StrawberryDjangoField, StrawberryDjangoTokenField
+                    if settings.jwt_settings.JWT_LONG_RUNNING_REFRESH_TOKEN:
+                        new_type = type(
+                            "StrawberryDjangoJWTField",
+                            (
+                                *base_types,
+                                StrawberryDjangoRefreshTokenField,
+                            ),
+                            {},
+                        )
+                    else:
+                        new_type = type("StrawberryDjangoJWTField", base_types, {})
+                    field.__class__ = new_type
+                    continue
                 field.arguments.append(
                     create_strawberry_argument(
                         "token", "token", str, **field_options.get("token", {})
@@ -48,8 +70,6 @@ class BaseJSONWebTokenMixin:
                             **field_options.get("refresh_token", {})
                         )
                     )
-                # field.base_resolver.wrapped_func = strip_kwargs(field.base_resolver.wrapped_func,
-                #                                                 ["token", "refresh_token"])
 
 
 class JSONWebTokenMixin(BaseJSONWebTokenMixin):

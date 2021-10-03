@@ -227,7 +227,7 @@ class LoginLogoutTest(SchemaTestCase):
 
         @login_field
         def mutate(self, info: Info) -> str:
-            return "OK" if self == {} else "NOK"
+            return "OK"
 
     def test_invalid_credentials(self):
         # Login
@@ -374,7 +374,7 @@ if django.VERSION[:2] >= (3, 1):
 
             @login_field
             def mutate(self, info: Info) -> str:
-                return "OK" if self == {} else "NOK"
+                return "OK"
 
         async def test_invalid_credentials_async(self):
             # Login
