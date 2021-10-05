@@ -4,6 +4,8 @@ from unittest import mock
 import django
 import strawberry
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission, User
+from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
 from django.test import testcases
 from graphql.execution.execute import GraphQLResolveInfo
@@ -15,14 +17,21 @@ from strawberry_django_jwt.testcases import JSONWebTokenClient
 from strawberry_django_jwt.testcases import JSONWebTokenTestCase
 from strawberry_django_jwt.utils import jwt_encode
 from strawberry_django_jwt.utils import jwt_payload
+from tests.models import MyTestModel
 
 
 class UserTestCase(testcases.TestCase):
     def setUp(self):
-        self.user = get_user_model().objects.create_user(
+        self.user: User = get_user_model().objects.create_user(
             username="test",
             password="dolphins",
         )
+        self.test_permission = Permission.objects.create(
+            codename="run_tests",
+            name="Can run tests",
+            content_type=ContentType.objects.get_for_model(MyTestModel),
+        )
+        self.user.user_permissions.add(self.test_permission)
 
 
 class TestCase(UserTestCase):

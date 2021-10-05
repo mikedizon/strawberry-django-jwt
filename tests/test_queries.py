@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from strawberry.types import Info
 
-from strawberry_django_jwt.decorators import dispose_extra_kwargs
+from strawberry_django_jwt.decorators import dispose_extra_kwargs, permission_required
 from strawberry_django_jwt.decorators import login_required
 from strawberry_django_jwt.mixins import JSONWebTokenMixin
 from strawberry_django_jwt.model_object_types import UserType
@@ -216,6 +216,38 @@ class QueriesTests(SchemaTestCase):
         data = response.data
 
         self.assertEqual(data["testModel"], [])
+        self.assertIsNone(response.errors)
+
+    def test_permission_required(self):
+        @strawberry.type
+        class Query(JSONWebTokenMixin):
+            @strawberry.field
+            @permission_required("tests.run_tests")
+            def test(self) -> str:
+                return "TEST"
+
+            @strawberry.field
+            @permission_required("tests.run_tests")
+            def test_info(self, info: Info) -> str:
+                return "TEST"
+
+        self.client.schema(query=Query, mutation=self.Mutation)
+
+        query = """
+        query Test {
+            test
+            testInfo
+        }
+        """
+
+        headers = {
+            jwt_settings.JWT_AUTH_HEADER_NAME: f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
+        }
+
+        response = self.client.execute(query, **headers)
+        data = response.data
+
+        self.assertEqual(data["test"], "TEST")
         self.assertIsNone(response.errors)
 
 

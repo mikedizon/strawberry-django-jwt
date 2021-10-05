@@ -40,20 +40,12 @@ __all__ = [
 ]
 
 
-def login_required(target):
+def with_info(target):
     def signature_add_fn(self, info: Info, *args, **kwargs):
         # Only called when no info should be passed, no need to check
         return target(self, *args, **kwargs)
 
-    # get_result is used by strawberry-graphql-django model mutations
-    get_result = getattr(target, "get_result", None)
-
-    if get_result is not None and callable(get_result):
-        target.get_result = login_required(target.get_result)
-        return target
-
     # Create a fake target function with info argument
-
     target_inspection = inspect.signature(target)
     target_clean = target
     if "info" not in target_inspection.parameters.keys():
@@ -67,29 +59,34 @@ def login_required(target):
         # Copy annotations as well
         signature_add_fn.__annotations__ = target.__annotations__
         target_clean = signature_add_fn
-    wrapped = user_passes_test(lambda u: u.is_authenticated)(target_clean)
-    return wrapped
+    return target_clean
 
 
-def context(f):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            info = kwargs.get("info")
-            ctx = get_context(info)
-            return func(ctx, *args, **kwargs)
+def context(func):
+    def wrapper(*args, **kwargs):
+        info = kwargs.get("info")
+        ctx = get_context(info)
+        return func(ctx, *args, **kwargs)
 
-        return wrapper
-
-    return decorator
+    return wrapper
 
 
 def user_passes_test(test_func, exc=exceptions.PermissionDenied):
     def decorator(f):
-        @wraps(f)
-        @context(f)
+        # get_result is used by strawberry-graphql-django model mutations
+        get_result = getattr(f, "get_result", None)
+
+        if get_result is not None and callable(get_result):
+            f.get_result = decorator(f.get_result)
+            return f
+
+        f_with_info = with_info(f)
+
+        @wraps(f_with_info)
+        @context
         def wrapper(context, *args, **kwargs):
             if context and test_func(context.user):
-                return dispose_extra_kwargs(f)(*args, **kwargs)
+                return dispose_extra_kwargs(f_with_info)(*args, **kwargs)
             raise exc
 
         return wrapper
@@ -99,6 +96,7 @@ def user_passes_test(test_func, exc=exceptions.PermissionDenied):
 
 staff_member_required = user_passes_test(lambda u: u.is_staff)
 superuser_required = user_passes_test(lambda u: u.is_superuser)
+login_required = user_passes_test(lambda u: u.is_authenticated)
 
 
 def login_field(fn=None):
