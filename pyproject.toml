@@ -17,8 +17,9 @@ classifiers = [
     'Framework :: Django :: 3.1',
     'Framework :: Django :: 3.2',
 ]
-exclude = ["tests/"]
-include = ["strawberry_django_jwt/"]
+packages = [
+    { include = "strawberry_django_jwt" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"

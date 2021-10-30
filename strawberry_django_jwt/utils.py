@@ -1,9 +1,9 @@
+from __future__ import annotations
+
 from calendar import timegm
 from datetime import datetime
 from inspect import isawaitable
-from typing import Any, Type
-from typing import Union, Optional
-from typing import cast
+from typing import Any, Optional, TYPE_CHECKING, Type, Union, cast
 
 import jwt
 from asgiref.sync import sync_to_async
@@ -12,15 +12,19 @@ from django.http import HttpRequest
 from django.utils.translation import gettext as _
 from graphql import GraphQLResolveInfo
 from packaging.version import parse as parse_ver
-from rest_framework.request import Request
 from strawberry.annotation import StrawberryAnnotation  # type: ignore
 from strawberry.arguments import StrawberryArgument
 from strawberry.django.context import StrawberryDjangoContext
 from strawberry.types import Info
 
-from . import exceptions
-from . import object_types
-from .settings import jwt_settings
+from strawberry_django_jwt import exceptions, object_types
+from strawberry_django_jwt.settings import jwt_settings
+
+if TYPE_CHECKING:
+    try:
+        from rest_framework.request import Request
+    except ImportError:
+        pass  # Only used for type hinting when DRF is installed
 
 
 def create_strawberry_argument(
