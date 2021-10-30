@@ -20,7 +20,7 @@ from strawberry.types import Info
 from strawberry_django_jwt import exceptions, object_types
 from strawberry_django_jwt.settings import jwt_settings
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     try:
         from rest_framework.request import Request
     except ImportError:
