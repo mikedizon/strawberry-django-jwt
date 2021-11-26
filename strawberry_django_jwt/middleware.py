@@ -1,11 +1,11 @@
 from inspect import isawaitable
-from typing import Any, Set
+from typing import Any, Set, cast
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.middleware import get_user
 from django.contrib.auth.models import AnonymousUser
 from django.utils.translation import gettext as _
-from graphql import GraphQLType
+from graphql import GraphQLResolveInfo, GraphQLType
 from strawberry.extensions import Extension
 from strawberry.types import ExecutionContext, Info
 
@@ -86,7 +86,7 @@ class BaseJSONWebTokenMiddleware(Extension):
 
 
 class JSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
-    def resolve(self, next_, root, info: Info, **kwargs):
+    def resolve(self, _next, root, info: Info, *args, **kwargs):
         context, token_argument = self.resolve_base(info, **kwargs)
 
         if (
@@ -103,19 +103,20 @@ class JSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
 
         elif (
             info.field_name == "__schema"
-            and info.parent_type.name == "Query"
+            and cast(GraphQLResolveInfo, info).parent_type.name == "Query"
             and jwt_settings.JWT_AUTHENTICATE_INTROSPECTION
             and self.authenticate_context(info, **kwargs)
         ):
+
             raise exceptions.PermissionDenied(
                 _("The introspection query requires authentication.")
             )
 
-        return next_(root, info, **kwargs)
+        return _next(root, info, **kwargs)
 
 
 class AsyncJSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
-    async def resolve(self, next_, root, info: Info, **kwargs):
+    async def resolve(self, _next, root, info: Info, *args, **kwargs):
         context, token_argument = self.resolve_base(info, **kwargs)
 
         if (
@@ -132,7 +133,7 @@ class AsyncJSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
 
         elif (
             info.field_name == "__schema"
-            and info.parent_type.name == "Query"
+            and cast(GraphQLResolveInfo, info).parent_type.name == "Query"
             and jwt_settings.JWT_AUTHENTICATE_INTROSPECTION
             and self.authenticate_context(info, **kwargs)
         ):
@@ -140,7 +141,7 @@ class AsyncJSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
                 _("The introspection query requires authentication.")
             )
 
-        result = next_(root, info, **kwargs)
+        result = _next(root, info, **kwargs)
         if isawaitable(result):
             return await result
         return result
