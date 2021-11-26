@@ -82,6 +82,21 @@ class BaseJSONWebTokenMiddleware(Extension):
                 else:
                     context.user = AnonymousUser()
 
+        if (
+            _authenticate(context) or token_argument is not None
+        ) and self.authenticate_context(info, **kwargs):
+            return context, token_argument
+        elif (
+            info.field_name == "__schema"
+            and cast(GraphQLResolveInfo, info).parent_type.name == "Query"
+            and jwt_settings.JWT_AUTHENTICATE_INTROSPECTION
+            and self.authenticate_context(info, **kwargs)
+        ):
+
+            raise exceptions.PermissionDenied(
+                _("The introspection query requires authentication.")
+            )
+
         return context, token_argument
 
 
@@ -101,17 +116,6 @@ class JSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
                 if jwt_settings.JWT_ALLOW_ARGUMENT:
                     self.cached_authentication.insert(info.path, user)
 
-        elif (
-            info.field_name == "__schema"
-            and cast(GraphQLResolveInfo, info).parent_type.name == "Query"
-            and jwt_settings.JWT_AUTHENTICATE_INTROSPECTION
-            and self.authenticate_context(info, **kwargs)
-        ):
-
-            raise exceptions.PermissionDenied(
-                _("The introspection query requires authentication.")
-            )
-
         return _next(root, info, **kwargs)
 
 
@@ -130,16 +134,6 @@ class AsyncJSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
 
                 if jwt_settings.JWT_ALLOW_ARGUMENT:
                     self.cached_authentication.insert(info.path, user)
-
-        elif (
-            info.field_name == "__schema"
-            and cast(GraphQLResolveInfo, info).parent_type.name == "Query"
-            and jwt_settings.JWT_AUTHENTICATE_INTROSPECTION
-            and self.authenticate_context(info, **kwargs)
-        ):
-            raise exceptions.PermissionDenied(
-                _("The introspection query requires authentication.")
-            )
 
         result = _next(root, info, **kwargs)
         if isawaitable(result):
