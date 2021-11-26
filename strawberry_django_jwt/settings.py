@@ -38,6 +38,7 @@ DEFAULTS = {
     "JWT_GET_REFRESH_TOKEN_HANDLER": "strawberry_django_jwt.refresh_token.utils.get_refresh_token_by_model",
     "JWT_ALLOW_ANY_HANDLER": "strawberry_django_jwt.middleware.allow_any",
     "JWT_ALLOW_ANY_CLASSES": (),
+    "JWT_AUTHENTICATE_INTROSPECTION": True,
     "JWT_CSRF_ROTATION": False,
     "JWT_HIDE_TOKEN_FIELDS": False,
     "JWT_COOKIE_NAME": "JWT",
@@ -59,6 +60,7 @@ IMPORT_STRINGS = (
     "JWT_GET_REFRESH_TOKEN_HANDLER",
     "JWT_ALLOW_ANY_HANDLER",
     "JWT_ALLOW_ANY_CLASSES",
+    "JWT_AUTHENTICATE_INTROSPECTION",
 )
 
 

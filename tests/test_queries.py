@@ -6,6 +6,7 @@ import strawberry
 import strawberry_django
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
+from graphql import get_introspection_query
 from strawberry.types import Info
 
 from strawberry_django_jwt.decorators import dispose_extra_kwargs, permission_required
@@ -248,6 +249,36 @@ class QueriesTests(SchemaTestCase):
         data = response.data
 
         self.assertEqual(data["test"], "TEST")
+        self.assertIsNone(response.errors)
+
+    def test_introspection(self):
+        headers = {
+            jwt_settings.JWT_AUTH_HEADER_NAME: f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
+        }
+
+        response = self.client.execute(get_introspection_query(), **headers)
+
+        self.assertIsNone(response.errors)
+
+    def test_introspection_no_header(self):
+        response = self.client.execute(get_introspection_query())
+
+        self.assertIsNotNone(response.errors)
+
+    @OverrideJwtSettings(JWT_AUTHENTICATE_INTROSPECTION=False)
+    def test_introspection_no_auth(self):
+        headers = {
+            jwt_settings.JWT_AUTH_HEADER_NAME: f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
+        }
+
+        response = self.client.execute(get_introspection_query(), **headers)
+
+        self.assertIsNone(response.errors)
+
+    @OverrideJwtSettings(JWT_AUTHENTICATE_INTROSPECTION=False)
+    def test_introspection_no_auth_no_header(self):
+        response = self.client.execute(get_introspection_query())
+
         self.assertIsNone(response.errors)
 
 

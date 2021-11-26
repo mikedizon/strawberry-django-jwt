@@ -38,7 +38,31 @@ substitutes [Graphene](https://graphene-python.org/) GraphQL backend for [Strawb
    ]
    ```
 
-3. Add `JSONWebTokenMiddleware` or `AsyncJSONWebTokenMiddleware` middleware to your **STRAWBERRY** schema definition:
+3. Add following django apps to **INSTALLED_APPS**:
+
+   ```python
+   INSTALLED_APPS = [
+       'django.contrib.auth',
+       'django.contrib.contenttypes',
+       'django.contrib.sessions',
+       ...,
+   ]
+   ```
+
+   If using refresh tokens, also add `strawberry_django_jwt.refresh_token`
+
+   ```python
+   INSTALLED_APPS = [
+       'django.contrib.auth',
+       'django.contrib.contenttypes',
+       'django.contrib.sessions',
+       ...,
+       'strawberry_django_jwt.refresh_token',
+       ...,
+   ]
+   ```
+
+4. Add `JSONWebTokenMiddleware` or `AsyncJSONWebTokenMiddleware` middleware to your **STRAWBERRY** schema definition:
 
    ```python
    from strawberry_django_jwt.middleware import JSONWebTokenMiddleware, AsyncJSONWebTokenMiddleware
@@ -52,7 +76,7 @@ substitutes [Graphene](https://graphene-python.org/) GraphQL backend for [Strawb
    ])
    ```
 
-4. Add `JSONWebTokenBackend` backend to your **AUTHENTICATION_BACKENDS**:
+5. Add `JSONWebTokenBackend` backend to your **AUTHENTICATION_BACKENDS**:
 
    ```python
    AUTHENTICATION_BACKENDS = [
@@ -61,7 +85,7 @@ substitutes [Graphene](https://graphene-python.org/) GraphQL backend for [Strawb
    ]
    ```
 
-5. Add _strawberry-django-jwt_ mutations to the root schema:
+6. Add _strawberry-django-jwt_ mutations to the root schema:
 
    ```python
    import strawberry
@@ -77,7 +101,7 @@ substitutes [Graphene](https://graphene-python.org/) GraphQL backend for [Strawb
 
    schema = strawberry.Schema(mutation=Mutation, query=...)
 
-6. \[OPTIONAL\] Set up the custom Strawberry views
+7. \[OPTIONAL\] Set up the custom Strawberry views
 
    These views set the status code of failed authentication attempts to 401 instead of the default 200.
 
