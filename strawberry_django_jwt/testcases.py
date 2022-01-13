@@ -1,4 +1,3 @@
-import django
 import strawberry
 from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.asgi import ASGIRequest
@@ -95,13 +94,6 @@ class AsyncJSONWebTokenClient(AsyncSchemaRequestFactory, AsyncClient):
         self._credentials = {}
 
     def request(self, **request):
-        if request.get("custom_headers"):
-            request["headers"].extend(
-                [
-                    (h.lower().encode("ascii"), v.encode("latin1"))
-                    for h, v in request.get("custom_headers").items()
-                ]
-            )
         for idx, header in enumerate(request["headers"]):
             if header[0] == b"content-length":
                 del request["headers"][idx]
@@ -117,10 +109,7 @@ class AsyncJSONWebTokenClient(AsyncSchemaRequestFactory, AsyncClient):
         self._credentials = kwargs
 
     def execute(self, query, variables=None, **extra):
-        if django.VERSION[:2] == (3, 1):
-            context = self.post(query, custom_headers=self._credentials, **extra)
-        else:
-            context = self.post(query, **self._credentials, **extra)
+        context = self.post(query, **self._credentials, **extra)
 
         return super().execute(
             query,

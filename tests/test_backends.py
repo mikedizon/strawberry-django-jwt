@@ -94,8 +94,6 @@ class AsyncBackendsTests(AsyncTestCase):
         }
 
         request = self.request_factory.get("/", **headers)
-        if django.VERSION[:2] == (3, 1):
-            request.META.update(headers)
         user = await self.backend.authenticate_async(request=request)
 
         self.assertEqual(user, self.user)
@@ -111,8 +109,6 @@ class AsyncBackendsTests(AsyncTestCase):
         }
 
         request = self.request_factory.get("/", **headers)
-        if django.VERSION[:2] == (3, 1):
-            request.META.update(headers)
 
         with self.assertRaises(JSONWebTokenError):
             await self.backend.authenticate_async(request=request)
