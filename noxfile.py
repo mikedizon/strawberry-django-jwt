@@ -8,7 +8,7 @@ from nox import session
 
 package = "strawberry_django_jwt"
 python_versions = ["3.10", "3.9", "3.8", "3.7"]
-django_versions = ["4.0", "3.2", "3.1"]
+django_versions = ["4.0", "3.2"]
 invalid_sessions = [
     ("3.7", "4.0"),
     ("3.10", "3.1"),
