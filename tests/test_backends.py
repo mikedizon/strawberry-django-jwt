@@ -1,6 +1,5 @@
 import base64
 
-import django
 import pytest
 from django.contrib.auth.models import User
 from django.test import Client, TestCase as DjangoTestCase
@@ -84,13 +83,10 @@ class AsyncBackendsTests(AsyncTestCase):
         self.backend = JSONWebTokenBackend()
 
     async def test_authenticate_async(self):
-        name = (
-            jwt_settings.JWT_AUTH_HEADER_NAME
-            if django.VERSION[:2] < (3, 2)
-            else jwt_settings.JWT_AUTH_HEADER_NAME.replace("HTTP_", "")
-        )
         headers = {
-            name: f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
+            jwt_settings.JWT_AUTH_HEADER_NAME.replace(
+                "HTTP_", ""
+            ): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
         }
 
         request = self.request_factory.get("/", **headers)
@@ -99,13 +95,10 @@ class AsyncBackendsTests(AsyncTestCase):
         self.assertEqual(user, self.user)
 
     async def test_authenticate_fail_async(self):
-        name = (
-            jwt_settings.JWT_AUTH_HEADER_NAME
-            if django.VERSION[:2] < (3, 2)
-            else jwt_settings.JWT_AUTH_HEADER_NAME.replace("HTTP_", "")
-        )
         headers = {
-            name: f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} invalid",
+            jwt_settings.JWT_AUTH_HEADER_NAME.replace(
+                "HTTP_", ""
+            ): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} invalid",
         }
 
         request = self.request_factory.get("/", **headers)
