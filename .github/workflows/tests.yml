@@ -51,6 +51,9 @@ jobs:
         run: |
           pip install --constraint=.github/workflows/constraints.txt pip
           pip --version
+      - name: Install Wheel
+        run: |
+          pip install --constraint=.github/workflows/constraints.txt wheel
       - name: Install Poetry
         run: |
           pip install --constraint=.github/workflows/constraints.txt poetry
@@ -108,6 +111,9 @@ jobs:
         run: |
           pip install --constraint=.github/workflows/constraints.txt pip
           pip --version
+      - name: Install Wheel
+        run: |
+          pip install --constraint=.github/workflows/constraints.txt wheel
       - name: Install Poetry
         run: |
           pip install --constraint=.github/workflows/constraints.txt poetry
