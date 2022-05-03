@@ -55,9 +55,9 @@ jobs:
         run: |
           pip install --constraint=.github/workflows/constraints.txt poetry
           poetry --version
-      - name: Install Nox
+      - name: Install Nox and nox-poetry
         run: |
-          pip install --constraint=.github/workflows/constraints.txt nox
+          pip install --constraint=.github/workflows/constraints.txt nox nox-poetry
           nox --version
       - name: Install strawberry-django-jwt
         run: |
@@ -97,7 +97,7 @@ jobs:
     needs: tests
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.2
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v2.3.2
