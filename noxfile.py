@@ -3,8 +3,8 @@ from pathlib import Path
 from textwrap import dedent
 
 import nox
-from nox import Session
-from nox import session
+from nox_poetry import Session, session
+from nox_poetry.core import Session_install
 
 package = "strawberry_django_jwt"
 python_versions = ["3.10", "3.9", "3.8", "3.7"]
@@ -13,7 +13,7 @@ invalid_sessions = [
     ("3.7", "4.0"),
     ("3.10", "3.1"),
 ]
-pyjwt_versions = ["1.7.1", "2.1.0"]
+pyjwt_versions = ["1.7.1", "latest"]
 strawberry_graphql_versions = ["0.69.0", "latest"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = ("tests",)
@@ -69,6 +69,23 @@ def activate_virtualenv_in_precommit_hooks(session_: Session) -> None:
         hook.write_text("\n".join(lines))
 
 
+def install(session_, package_, version):
+    if version == "latest":
+        Session_install(session_, package, "-U")
+    else:
+        Session_install(session_, f"{package_}=={version}")
+
+
+# noinspection PyUnresolvedReferences,PyProtectedMember
+def export_requirements_without_extras(session_: Session) -> Path:
+    """Ugly workaround to install only certain dev dependencies without extras"""
+    extras = session_.poetry.poetry.config._config.get("extras", {})  # type: ignore
+    session_.poetry.poetry.config._config["extras"] = {}  # type: ignore
+    requirements = session_.poetry.export_requirements()
+    session_.poetry.poetry.config._config["extras"] = extras  # type: ignore
+    return requirements
+
+
 @session(name="pre-commit", python="3.9")
 def pre_commit(session_: Session) -> None:
     """Lint using pre-commit."""
@@ -88,34 +105,17 @@ def pre_commit(session_: Session) -> None:
 @session(python="3.9")
 def safety(session_: Session) -> None:
     """Scan dependencies for insecure packages."""
-    requirements = Path("requirements.txt")
-    session_.run(
-        "poetry",
-        "export",
-        f"-o{requirements}",
-        "--dev",
-        "--without-hashes",
-        external=True,
-    )
-    session_.install(f"-r{requirements}")
+    requirements = session_.poetry.export_requirements()
+    session_.install("safety")
     session_.run("safety", "check", "--full-report", f"--file={requirements}")
-    requirements.unlink()
 
 
 @session(python="3.9")
 def mypy(session_: Session) -> None:
     """Type-check using mypy."""
     args = session_.posargs or ["strawberry_django_jwt", "tests"]
-    requirements = Path("requirements.txt")
-    session_.run(
-        "poetry",
-        "export",
-        f"-o{requirements}",
-        "--dev",
-        "--without-hashes",
-        external=True,
-    )
-    session_.install(f"-r{requirements}")
+    requirements = export_requirements_without_extras(session_)
+    session_.install("-r", str(requirements))
     session_.run("mypy", *args)
     if not session_.posargs:
         session_.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
@@ -127,19 +127,10 @@ def tests(session_: Session, django: str) -> None:
     """Run the test suite."""
     if (session_.python, django) in invalid_sessions:
         session_.skip()
-    requirements = Path("requirements.txt")
-    session_.run(
-        "poetry",
-        "export",
-        f"-o{requirements}",
-        "--dev",
-        "--without-hashes",
-        external=True,
-    )
-    session_.install(f"-r{requirements}")
-    session_.install(f"django=={django}")
-    session_.run("python", "-m", "pytest")
-    requirements.unlink()
+    session_.install(".")
+    requirements = export_requirements_without_extras(session_)
+    session_.install("-r", str(requirements))
+    install(session_, "django", django)
 
     try:
         session_.run("coverage", "run", "--parallel", "-m", "pytest", *session_.posargs)
@@ -151,19 +142,10 @@ def tests(session_: Session, django: str) -> None:
 @session(python="3.9")
 @nox.parametrize("pyjwt", pyjwt_versions)
 def tests_pyjwt(session_: Session, pyjwt: str) -> None:
-    requirements = Path("requirements.txt")
-    session_.run(
-        "poetry",
-        "export",
-        f"-o{requirements}",
-        "--dev",
-        "--without-hashes",
-        external=True,
-    )
-    session_.install(f"-r{requirements}")
-    session_.install(f"pyjwt=={pyjwt}")
-    session_.run("python", "-m", "pytest")
-    requirements.unlink()
+    session_.install(".")
+    requirements = export_requirements_without_extras(session_)
+    session_.install("-r", str(requirements))
+    install(session_, "pyjwt", pyjwt)
 
     try:
         session_.run("coverage", "run", "--parallel", "-m", "pytest", *session_.posargs)
@@ -175,22 +157,12 @@ def tests_pyjwt(session_: Session, pyjwt: str) -> None:
 @session(python="3.9")
 @nox.parametrize("strawberry", strawberry_graphql_versions)
 def tests_strawberry_graphql(session_: Session, strawberry: str) -> None:
-    requirements = Path("requirements.txt")
-    session_.run(
-        "poetry",
-        "export",
-        f"-o{requirements}",
-        "--dev",
-        "--without-hashes",
-        external=True,
-    )
-    session_.install(f"-r{requirements}")
-    if strawberry == "latest":
-        session_.install("strawberry-graphql", "-U")
-    else:
-        session_.install(f"strawberry-graphql=={strawberry}")
-    session_.run("python", "-m", "pytest")
-    requirements.unlink()
+    session_.install(".")
+    requirements = export_requirements_without_extras(session_)
+    session_.install("-r", str(requirements))
+    install(session_, "strawberry-graphql", strawberry)
+    if strawberry == "0.69.0":
+        install(session_, "graphql-core", "3.1.7")
 
     try:
         session_.run("coverage", "run", "--parallel", "-m", "pytest", *session_.posargs)

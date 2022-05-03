@@ -40,10 +40,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nox-
       - name: Check out the repository
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.0.2
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2.3.1
+        uses: actions/setup-python@v3.1.2
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -87,7 +87,7 @@ jobs:
           nox --force-color --python=${{ matrix.python-version }}
       - name: Upload coverage data
         if: always() && startsWith(matrix.session, 'tests')
-        uses: "actions/upload-artifact@v2.3.1"
+        uses: actions/upload-artifact@v3.0.0
         with:
           name: coverage-data
           path: ".coverage.*"
@@ -120,7 +120,7 @@ jobs:
         run: |
           pip install .
       - name: Download coverage data
-        uses: actions/download-artifact@v2.1.0
+        uses: actions/download-artifact@v3.0.0
         with:
           name: coverage-data
 
