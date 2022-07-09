@@ -7,7 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.utils.translation import gettext as _
 from graphql import GraphQLResolveInfo, GraphQLType
 from strawberry.extensions import Extension
-from strawberry.types import ExecutionContext, Info
+from strawberry.types import ExecutionContext
 
 from strawberry_django_jwt import exceptions
 from strawberry_django_jwt.auth import authenticate as authenticate_async
@@ -35,10 +35,7 @@ def allow_any(info, **kwargs):
     field_type = getattr(field.type, "of_type", None)
 
     return field_type is not None and any(
-        [
-            issubclass(class_type, GraphQLType) and isinstance(field_type, class_type)
-            for class_type in tuple(jwt_settings.JWT_ALLOW_ANY_CLASSES)
-        ]
+        [issubclass(class_type, GraphQLType) and isinstance(field_type, class_type) for class_type in tuple(jwt_settings.JWT_ALLOW_ANY_CLASSES)]
     )
 
 
@@ -55,7 +52,7 @@ class BaseJSONWebTokenMiddleware(Extension):
         if jwt_settings.JWT_ALLOW_ARGUMENT:
             self.cached_authentication = PathDict()
 
-    def authenticate_context(self, info, **kwargs):
+    def authenticate_context(self, info: GraphQLResolveInfo, **kwargs):
         root_path = info.path[0]
 
         if root_path not in self.cached_allow_any:
@@ -65,7 +62,7 @@ class BaseJSONWebTokenMiddleware(Extension):
                 return True
         return False
 
-    def resolve_base(self, info: Info, **kwargs):
+    def resolve_base(self, info: GraphQLResolveInfo, **kwargs):
         context = get_context(info)
         token_argument = get_token_argument(context, **kwargs)
 
@@ -82,9 +79,7 @@ class BaseJSONWebTokenMiddleware(Extension):
                 else:
                     context.user = AnonymousUser()
 
-        if (
-            _authenticate(context) or token_argument is not None
-        ) and self.authenticate_context(info, **kwargs):
+        if (_authenticate(context) or token_argument is not None) and self.authenticate_context(info, **kwargs):
             return context, token_argument
         elif (
             info.field_name == "__schema"
@@ -93,20 +88,16 @@ class BaseJSONWebTokenMiddleware(Extension):
             and self.authenticate_context(info, **kwargs)
         ):
 
-            raise exceptions.PermissionDenied(
-                _("The introspection query requires authentication.")
-            )
+            raise exceptions.PermissionDenied(_("The introspection query requires authentication."))
 
         return context, token_argument
 
 
 class JSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
-    def resolve(self, _next, root, info: Info, *args, **kwargs):
+    def resolve(self, _next, root, info: GraphQLResolveInfo, *args, **kwargs):
         context, token_argument = self.resolve_base(info, **kwargs)
 
-        if (
-            _authenticate(context) or token_argument is not None
-        ) and self.authenticate_context(info, **kwargs):
+        if (_authenticate(context) or token_argument is not None) and self.authenticate_context(info, **kwargs):
 
             user = authenticate(request=context, **kwargs)
 
@@ -120,12 +111,10 @@ class JSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
 
 
 class AsyncJSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
-    async def resolve(self, _next, root, info: Info, *args, **kwargs):
+    async def resolve(self, _next, root, info: GraphQLResolveInfo, *args, **kwargs):
         context, token_argument = self.resolve_base(info, **kwargs)
 
-        if (
-            _authenticate(context) or token_argument is not None
-        ) and self.authenticate_context(info, **kwargs):
+        if (_authenticate(context) or token_argument is not None) and self.authenticate_context(info, **kwargs):
 
             user = await authenticate_async(request=context, **kwargs)
 

@@ -1,8 +1,15 @@
+from sys import version_info
+from unittest.mock import patch
+
+if version_info < (3, 8):
+    from unittest.mock import AsyncMock
+else:
+    from unittest.mock import AsyncMock
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory
-from mock import patch
 
 from strawberry_django_jwt.auth import authenticate
 from strawberry_django_jwt.backends import JSONWebTokenBackend
@@ -77,10 +84,7 @@ class AsyncAuthTests(AsyncTestCase):
         async def _authenticate(_=None, **__):
             return self.user
 
-        with patch(
-            "tests.test_auth.AsyncDefaultAuth.authenticate",
-            side_effect=_authenticate,
-        ):
+        with patch("tests.test_auth.AsyncDefaultAuth.authenticate", side_effect=_authenticate, new_callable=AsyncMock):
             result = await authenticate(request)
 
         self.assertEqual(result, self.user)

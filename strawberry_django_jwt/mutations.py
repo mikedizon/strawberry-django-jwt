@@ -1,19 +1,26 @@
 import inspect
 
-import strawberry
 from django.contrib.auth import get_user_model
+import strawberry
 from strawberry.field import StrawberryField
+from strawberry.types import Info
 
-from . import mixins
-from .decorators import dispose_extra_kwargs
-from .decorators import ensure_token
-from .decorators import token_auth
-from .object_types import DeleteType
-from .object_types import PayloadType
-from .object_types import TokenDataType
-from .object_types import TokenPayloadType
-from .refresh_token.mutations import DeleteRefreshTokenCookie
-from .refresh_token.mutations import Revoke
+from strawberry_django_jwt import mixins
+from strawberry_django_jwt.decorators import (
+    dispose_extra_kwargs,
+    ensure_token,
+    token_auth,
+)
+from strawberry_django_jwt.object_types import (
+    DeleteType,
+    PayloadType,
+    TokenDataType,
+    TokenPayloadType,
+)
+from strawberry_django_jwt.refresh_token.mutations import (
+    DeleteRefreshTokenCookie,
+    Revoke,
+)
 
 __all__ = [
     "JSONWebTokenMutation",
@@ -25,9 +32,12 @@ __all__ = [
     "DeleteJSONWebTokenCookie",
 ]
 
-from .settings import jwt_settings
-
-from .utils import get_payload, get_context, create_strawberry_argument
+from strawberry_django_jwt.settings import jwt_settings
+from strawberry_django_jwt.utils import (
+    create_strawberry_argument,
+    get_context,
+    get_payload,
+)
 
 
 class JSONWebTokenMutation(mixins.JSONWebTokenMixin):
@@ -35,9 +45,7 @@ class JSONWebTokenMutation(mixins.JSONWebTokenMixin):
         super().__init_subclass__()
         user = get_user_model().USERNAME_FIELD
         field: StrawberryField
-        for (name, field) in inspect.getmembers(
-            cls, lambda f: isinstance(f, StrawberryField)
-        ):
+        for (_name, field) in inspect.getmembers(cls, lambda f: isinstance(f, StrawberryField)):
             field.arguments.extend(
                 [
                     create_strawberry_argument(user, user, str),
@@ -52,14 +60,14 @@ class ObtainJSONWebToken(JSONWebTokenMutation):
     @strawberry.mutation
     @token_auth
     @dispose_extra_kwargs
-    def obtain(self, info) -> TokenDataType:
+    def obtain(self, info: Info) -> TokenDataType:
         return TokenDataType(payload=TokenPayloadType())
 
 
 class Verify:
     @strawberry.mutation
     @ensure_token
-    def verify(self, info, token: str) -> PayloadType:
+    def verify(self, info: Info, token: str) -> PayloadType:
         return PayloadType(payload=get_payload(token, info.context))
 
 
@@ -69,12 +77,7 @@ class Refresh(mixins.RefreshMixin):
 
 class DeleteJSONWebTokenCookie:
     @strawberry.mutation
-    def delete_cookie(self, info) -> DeleteType:
+    def delete_cookie(self, info: Info) -> DeleteType:
         ctx = get_context(info)
-        setattr(
-            ctx,
-            "delete_jwt_cookie",
-            jwt_settings.JWT_COOKIE_NAME in ctx.COOKIES
-            and getattr(ctx, "jwt_cookie", False),
-        )
-        return DeleteType(deleted=getattr(ctx, "delete_jwt_cookie"))
+        ctx.delete_jwt_cookie = jwt_settings.JWT_COOKIE_NAME in ctx.COOKIES and getattr(ctx, "jwt_cookie", False)
+        return DeleteType(deleted=ctx.delete_jwt_cookie)

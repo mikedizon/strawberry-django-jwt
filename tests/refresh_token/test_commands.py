@@ -1,9 +1,9 @@
 import io
 
 from django.core.management import call_command
-from strawberry_django_jwt.shortcuts import create_refresh_token
 
-from ..testcases import UserTestCase
+from strawberry_django_jwt.shortcuts import create_refresh_token
+from tests.testcases import UserTestCase
 
 
 class ClearTokensTests(UserTestCase):

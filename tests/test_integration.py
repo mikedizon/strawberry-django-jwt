@@ -36,9 +36,7 @@ class LoginTestCase(IntegrationTestCase):
                 "password": "dolphins",
             },
         }
-        response = self.client.post(
-            reverse("sync_graphql"), data=data, content_type="application/json"
-        )
+        response = self.client.post(reverse("sync_graphql"), data=data, content_type="application/json")
         result = response.json()
         self.assertEqual(result["status"], 200)
         self.assertEqual(result["data"]["tokenAuth"]["payload"], {"username": "test"})
@@ -46,9 +44,7 @@ class LoginTestCase(IntegrationTestCase):
 
     def test_read(self):
         data = {"query": self.read_query}
-        response = self.client.post(
-            reverse("sync_graphql"), data=data, content_type="application/json"
-        )
+        response = self.client.post(reverse("sync_graphql"), data=data, content_type="application/json")
         result = response.json()
         self.assertEqual(result["status"], 200)
         self.assertEqual(result["data"]["value"], 1)
@@ -62,9 +58,7 @@ class LoginTestCase(IntegrationTestCase):
                 "password": "dolphins",
             },
         }
-        response = await self.async_client.post(
-            reverse("sync_graphql"), data=data, content_type="application/json"
-        )
+        response = await self.async_client.post(reverse("sync_graphql"), data=data, content_type="application/json")
         result = response.json()
         self.assertEqual(result["status"], 200)
         self.assertEqual(result["data"]["tokenAuth"]["payload"], {"username": "test"})
@@ -77,9 +71,7 @@ class LoginTestCase(IntegrationTestCase):
         Tests https://github.com/KundaPanda/strawberry-django-jwt/issues/194
         """
         data = {"query": self.read_query}
-        response = await self.async_client.post(
-            reverse("sync_graphql"), data=data, content_type="application/json"
-        )
+        response = await self.async_client.post(reverse("sync_graphql"), data=data, content_type="application/json")
         result = response.json()
         self.assertEqual(result["status"], 200)
         self.assertEqual(result["data"]["value"], 1)
@@ -94,9 +86,7 @@ class AsyncLoginTestCase(IntegrationTestCase):
                 "password": "dolphins",
             },
         }
-        response = await self.async_client.post(
-            reverse("graphql"), data=data, content_type="application/json"
-        )
+        response = await self.async_client.post(reverse("graphql"), data=data, content_type="application/json")
         result = response.json()
         self.assertEqual(result["status"], 200)
         self.assertEqual(result["data"]["tokenAuth"]["payload"], {"username": "test"})
@@ -104,9 +94,7 @@ class AsyncLoginTestCase(IntegrationTestCase):
 
     async def test_async_read(self):
         data = {"query": self.read_query}
-        response = await self.async_client.post(
-            reverse("sync_graphql"), data=data, content_type="application/json"
-        )
+        response = await self.async_client.post(reverse("sync_graphql"), data=data, content_type="application/json")
         result = response.json()
         self.assertEqual(result["status"], 200)
         self.assertEqual(result["data"]["value"], 1)

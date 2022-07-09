@@ -1,14 +1,15 @@
 import base64
 
-import pytest
 from django.contrib.auth.models import User
-from django.test import Client, TestCase as DjangoTestCase
+from django.test import Client
+from django.test import TestCase as DjangoTestCase
+import pytest
 from rest_framework.test import APIClient
 
 from strawberry_django_jwt.backends import JSONWebTokenBackend
 from strawberry_django_jwt.exceptions import JSONWebTokenError
 from strawberry_django_jwt.settings import jwt_settings
-from .testcases import AsyncTestCase, TestCase
+from tests.testcases import AsyncTestCase, TestCase
 
 
 @pytest.mark.django_db
@@ -27,12 +28,8 @@ class MultipleBackendsTests(DjangoTestCase):
         assert response.status_code == 401
 
     def test_djrf_backend_authenticated(self):
-        User.objects.create_user(
-            username="test", password="test_pass", email="test@test.test"
-        )
-        self.djrf_client.credentials(
-            HTTP_AUTHORIZATION=f'Basic {base64.b64encode(b"test:test_pass").decode()}'
-        )
+        User.objects.create_user(username="test", password="test_pass", email="test@test.test")
+        self.djrf_client.credentials(HTTP_AUTHORIZATION=f'Basic {base64.b64encode(b"test:test_pass").decode()}')
         response = self.djrf_client.get("/users")
         assert response.status_code == 200
 
@@ -84,9 +81,7 @@ class AsyncBackendsTests(AsyncTestCase):
 
     async def test_authenticate_async(self):
         headers = {
-            jwt_settings.JWT_AUTH_HEADER_NAME.replace(
-                "HTTP_", ""
-            ): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
+            jwt_settings.JWT_AUTH_HEADER_NAME.replace("HTTP_", ""): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
         }
 
         request = self.request_factory.get("/", **headers)
@@ -96,9 +91,7 @@ class AsyncBackendsTests(AsyncTestCase):
 
     async def test_authenticate_fail_async(self):
         headers = {
-            jwt_settings.JWT_AUTH_HEADER_NAME.replace(
-                "HTTP_", ""
-            ): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} invalid",
+            jwt_settings.JWT_AUTH_HEADER_NAME.replace("HTTP_", ""): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} invalid",
         }
 
         request = self.request_factory.get("/", **headers)

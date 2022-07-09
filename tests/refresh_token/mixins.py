@@ -1,20 +1,19 @@
 from importlib import reload
 from typing import Any
 
-import strawberry
 from asgiref.sync import sync_to_async
+import strawberry
 
 import strawberry_django_jwt
-from strawberry_django_jwt.refresh_token.signals import refresh_token_revoked
-from strawberry_django_jwt.refresh_token.signals import refresh_token_rotated
+from strawberry_django_jwt.refresh_token.signals import (
+    refresh_token_revoked,
+    refresh_token_rotated,
+)
 from strawberry_django_jwt.settings import jwt_settings
-from strawberry_django_jwt.shortcuts import create_refresh_token
-from strawberry_django_jwt.shortcuts import get_refresh_token
+from strawberry_django_jwt.shortcuts import create_refresh_token, get_refresh_token
 from strawberry_django_jwt.signals import token_issued
-from ..context_managers import back_to_the_future
-from ..context_managers import catch_signal
-from ..context_managers import refresh_expired
-from ..decorators import OverrideJwtSettings
+from tests.context_managers import back_to_the_future, catch_signal, refresh_expired
+from tests.decorators import OverrideJwtSettings
 
 
 class RefreshTokenMutationMixin:
@@ -27,12 +26,7 @@ class RefreshTokenMutationMixin:
         m = type(
             "jwt",
             (object,),
-            {
-                **{
-                    name: mutation
-                    for name, mutation in self.refresh_token_mutations.items()
-                }
-            },
+            {**{name: mutation for name, mutation in self.refresh_token_mutations.items()}},
         )
         self.Mutation = strawberry.type(m)
 
@@ -93,9 +87,7 @@ class RefreshTokenMixin:
 
 class RefreshMixin(RefreshTokenMutationMixin, RefreshTokenMixin):
     def test_refresh_token(self):
-        with catch_signal(
-            refresh_token_rotated
-        ) as refresh_token_rotated_handler, back_to_the_future(seconds=1):
+        with catch_signal(refresh_token_rotated) as refresh_token_rotated_handler, back_to_the_future(seconds=1):
             response = self.execute(
                 {
                     "refreshToken": self.refresh_token.token,
@@ -120,9 +112,7 @@ class RefreshMixin(RefreshTokenMutationMixin, RefreshTokenMixin):
 
     @OverrideJwtSettings(JWT_REUSE_REFRESH_TOKENS=True)
     def test_reuse_refresh_token(self):
-        with catch_signal(
-            refresh_token_rotated
-        ) as refresh_token_rotated_handler, back_to_the_future(seconds=1):
+        with catch_signal(refresh_token_rotated) as refresh_token_rotated_handler, back_to_the_future(seconds=1):
             response = self.execute(
                 {
                     "refreshToken": self.refresh_token.token,
@@ -224,9 +214,7 @@ class CookieRefreshMixin(RefreshTokenMutationMixin):
     def test_refresh_token(self):
         self.set_refresh_token_cookie()
 
-        with catch_signal(
-            refresh_token_rotated
-        ) as refresh_token_rotated_handler, back_to_the_future(seconds=1):
+        with catch_signal(refresh_token_rotated) as refresh_token_rotated_handler, back_to_the_future(seconds=1):
             response = self.execute()
 
         data = response.data["refreshToken"]

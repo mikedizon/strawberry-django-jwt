@@ -1,5 +1,5 @@
-from .shortcuts import get_user_by_token, get_user_by_token_async
-from .utils import get_credentials
+from strawberry_django_jwt.shortcuts import get_user_by_token, get_user_by_token_async
+from strawberry_django_jwt.utils import get_credentials
 
 
 class JSONWebTokenBackend:

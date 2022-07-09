@@ -1,11 +1,9 @@
 import django
-from django.contrib.auth.models import AnonymousUser
-from django.contrib.auth.models import Permission
-from strawberry_django_jwt import decorators
-from strawberry_django_jwt import exceptions
+from django.contrib.auth.models import AnonymousUser, Permission
 
-from .decorators import OverrideJwtSettings
-from .testcases import TestCase
+from strawberry_django_jwt import decorators, exceptions
+from tests.decorators import OverrideJwtSettings
+from tests.testcases import TestCase
 
 
 class UserPassesTests(TestCase):

@@ -1,15 +1,14 @@
 import binascii
-import os
 from calendar import timegm
+import os
 
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from . import managers
-from . import signals
-from ..settings import jwt_settings
+from strawberry_django_jwt.refresh_token import managers, signals
+from strawberry_django_jwt.settings import jwt_settings
 
 
 class AbstractRefreshToken(models.Model):

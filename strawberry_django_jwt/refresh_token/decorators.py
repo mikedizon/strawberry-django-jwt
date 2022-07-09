@@ -1,15 +1,16 @@
 from functools import wraps
 
 from django.utils.translation import gettext as _
+from strawberry.types import Info
 
-from .. import exceptions
-from ..settings import jwt_settings
-from ..utils import get_context
+from strawberry_django_jwt import exceptions
+from strawberry_django_jwt.settings import jwt_settings
+from strawberry_django_jwt.utils import get_context
 
 
 def ensure_refresh_token(f):
     @wraps(f)
-    def wrapper(cls, info, refresh_token=None, *args, **kwargs):
+    def wrapper(cls, info: Info, refresh_token=None, *args, **kwargs):
         if refresh_token is None:
             cookies = get_context(info).COOKIES
             refresh_token = cookies.get(

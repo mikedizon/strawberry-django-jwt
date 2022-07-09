@@ -1,44 +1,48 @@
 import inspect
-from typing import Any
-from typing import Dict
-from typing import Optional
+from typing import Any, Dict, Optional
 
-import strawberry
 from django.utils.translation import gettext as _
+import strawberry
 from strawberry.field import StrawberryField
+from strawberry.types import Info
 from strawberry_django.fields.field import StrawberryDjangoField
 
-from . import exceptions
-from . import settings
-from .decorators import csrf_rotation
-from .decorators import ensure_token
-from .decorators import refresh_expiration
-from .decorators import setup_jwt_cookie
-from .fields import StrawberryDjangoTokenField, StrawberryDjangoRefreshTokenField
-from .object_types import TokenDataType
-from .refresh_token import signals as refresh_signals
-from .refresh_token.decorators import ensure_refresh_token
-from .refresh_token.object_types import RefreshedTokenType
-from .refresh_token.shortcuts import create_refresh_token
-from .refresh_token.shortcuts import get_refresh_token
-from .refresh_token.shortcuts import refresh_token_lazy
-from .signals import token_refreshed
-from .utils import create_strawberry_argument
-from .utils import get_payload, get_context
-from .utils import get_user_by_payload
-from .utils import maybe_thenable
+from strawberry_django_jwt import exceptions, settings
+from strawberry_django_jwt.decorators import (
+    csrf_rotation,
+    ensure_token,
+    refresh_expiration,
+    setup_jwt_cookie,
+)
+from strawberry_django_jwt.fields import (
+    StrawberryDjangoRefreshTokenField,
+    StrawberryDjangoTokenField,
+)
+from strawberry_django_jwt.object_types import TokenDataType
+from strawberry_django_jwt.refresh_token import signals as refresh_signals
+from strawberry_django_jwt.refresh_token.decorators import ensure_refresh_token
+from strawberry_django_jwt.refresh_token.object_types import RefreshedTokenType
+from strawberry_django_jwt.refresh_token.shortcuts import (
+    create_refresh_token,
+    get_refresh_token,
+    refresh_token_lazy,
+)
+from strawberry_django_jwt.signals import token_refreshed
+from strawberry_django_jwt.utils import (
+    create_strawberry_argument,
+    get_context,
+    get_payload,
+    get_user_by_payload,
+    maybe_thenable,
+)
 
 
 class BaseJSONWebTokenMixin:
     @staticmethod
     def init_fields(cls, field_options: Dict[str, Dict[str, Any]]):
         if not settings.jwt_settings.JWT_HIDE_TOKEN_FIELDS:
-            for (__, field) in inspect.getmembers(
-                cls, lambda f: isinstance(f, StrawberryField)
-            ):
-                if field.type_annotation is None and isinstance(
-                    field, StrawberryDjangoField
-                ):
+            for (__, field) in inspect.getmembers(cls, lambda f: isinstance(f, StrawberryField)):
+                if field.type_annotation is None and isinstance(field, StrawberryDjangoField):
                     # StrawberryDjangoFields resolve their arguments after strawberry decorator is applied.
                     # It is necessary to add subclasses to the field class which provide required arguments when
                     #   fields are collected.
@@ -56,20 +60,9 @@ class BaseJSONWebTokenMixin:
                         new_type = type("StrawberryDjangoJWTField", base_types, {})
                     field.__class__ = new_type
                     continue
-                field.arguments.append(
-                    create_strawberry_argument(
-                        "token", "token", str, **field_options.get("token", {})
-                    )
-                )
+                field.arguments.append(create_strawberry_argument("token", "token", str, **field_options.get("token", {})))
                 if settings.jwt_settings.JWT_LONG_RUNNING_REFRESH_TOKEN:
-                    field.arguments.append(
-                        create_strawberry_argument(
-                            "refresh_token",
-                            "refresh_token",
-                            str,
-                            **field_options.get("refresh_token", {})
-                        )
-                    )
+                    field.arguments.append(create_strawberry_argument("refresh_token", "refresh_token", str, **field_options.get("refresh_token", {})))
 
 
 class JSONWebTokenMixin(BaseJSONWebTokenMixin):
@@ -85,7 +78,7 @@ class KeepAliveRefreshMixin(JSONWebTokenMixin):
     @setup_jwt_cookie
     @csrf_rotation
     @ensure_token
-    def refresh(self, info, token: Optional[str]) -> TokenDataType:
+    def refresh(self, info: Info, token: Optional[str]) -> TokenDataType:
         def on_resolve(values):
             payload, token = values
             payload.token = token
@@ -104,10 +97,7 @@ class KeepAliveRefreshMixin(JSONWebTokenMixin):
 
         payload = settings.jwt_settings.JWT_PAYLOAD_HANDLER(user, context)
         payload.origIat = orig_iat
-        refresh_expires_in = (
-            orig_iat
-            + settings.jwt_settings.JWT_REFRESH_EXPIRATION_DELTA.total_seconds()
-        )
+        refresh_expires_in = orig_iat + settings.jwt_settings.JWT_REFRESH_EXPIRATION_DELTA.total_seconds()
 
         token = settings.jwt_settings.JWT_ENCODE_HANDLER(payload, context) or ""
         token_refreshed.send(sender=RefreshMixin, request=context, user=user)
@@ -122,7 +112,7 @@ class RefreshTokenMixin(JSONWebTokenMixin):
     @csrf_rotation
     @refresh_expiration
     @ensure_refresh_token
-    def refresh(self, info, refresh_token: Optional[str]) -> RefreshedTokenType:
+    def refresh(self, info: Info, refresh_token: Optional[str]) -> RefreshedTokenType:
         context = get_context(info)
         old_refresh_token = get_refresh_token(refresh_token, context)
 
@@ -135,16 +125,12 @@ class RefreshTokenMixin(JSONWebTokenMixin):
         )
         token = settings.jwt_settings.JWT_ENCODE_HANDLER(payload, context)
 
-        if getattr(context, "jwt_cookie", False):
-            setattr(
-                context,
-                "jwt_refresh_token",
-                create_refresh_token(
-                    old_refresh_token.user,
-                    old_refresh_token,
-                ),
+        if hasattr(context, "jwt_cookie"):
+            context.jwt_refresh_token = create_refresh_token(
+                old_refresh_token.user,
+                old_refresh_token,
             )
-            new_refresh_token = getattr(context, "jwt_refresh_token").get_token()
+            new_refresh_token = context.jwt_refresh_token.get_token()
         else:
             new_refresh_token = refresh_token_lazy(
                 old_refresh_token.user,
@@ -157,16 +143,10 @@ class RefreshTokenMixin(JSONWebTokenMixin):
             refresh_token=old_refresh_token,
             refresh_token_issued=new_refresh_token,
         )
-        return RefreshedTokenType(
-            payload, token, new_refresh_token, refresh_expires_in=0
-        )
+        return RefreshedTokenType(payload, token, new_refresh_token, refresh_expires_in=0)
 
 
-base_class = (
-    RefreshTokenMixin
-    if settings.jwt_settings.JWT_LONG_RUNNING_REFRESH_TOKEN
-    else KeepAliveRefreshMixin
-)
+base_class = RefreshTokenMixin if settings.jwt_settings.JWT_LONG_RUNNING_REFRESH_TOKEN else KeepAliveRefreshMixin
 
 
 class RefreshMixin(base_class, JSONWebTokenMixin):  # type: ignore

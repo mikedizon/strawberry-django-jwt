@@ -1,10 +1,9 @@
-import sys
 from pathlib import Path
+import sys
 from textwrap import dedent
 
 import nox
 from nox_poetry import Session, session
-from nox_poetry.core import Session_install
 
 package = "strawberry_django_jwt"
 python_versions = ["3.10", "3.9", "3.8", "3.7"]
@@ -45,9 +44,7 @@ def activate_virtualenv_in_precommit_hooks(session_: Session) -> None:
 
         text = hook.read_text()
         bindir = repr(session_.bin)[1:-1]  # strip quotes
-        if not (
-            Path("A") == Path("a") and bindir.lower() in text.lower() or bindir in text
-        ):
+        if not (Path("A") == Path("a") and bindir.lower() in text.lower() or bindir in text):
             continue
 
         lines = text.splitlines()
@@ -69,11 +66,11 @@ def activate_virtualenv_in_precommit_hooks(session_: Session) -> None:
         hook.write_text("\n".join(lines))
 
 
-def install(session_, package_, version):
+def install(session_: Session, package_, version):
     if version == "latest":
-        Session_install(session_, package, "-U")
+        nox.Session.install(session_, package, "-U")
     else:
-        Session_install(session_, f"{package_}=={version}")
+        nox.Session.install(session_, f"{package_}=={version}")
 
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
@@ -83,7 +80,7 @@ def export_requirements_without_extras(session_: Session) -> Path:
     session_.poetry.poetry.config._config["extras"] = {}  # type: ignore
     requirements = session_.poetry.export_requirements()
     session_.poetry.poetry.config._config["extras"] = extras  # type: ignore
-    return requirements
+    return requirements  # noqa: R504
 
 
 @session(name="pre-commit", python="3.9")
@@ -92,7 +89,7 @@ def pre_commit(session_: Session) -> None:
     args = session_.posargs or ["run", "--all-files", "--show-diff-on-failure"]
     session_.install(
         "darglint",
-        "autopep8",
+        "black",
         "pep8-naming",
         "pre-commit",
         "pre-commit-hooks",

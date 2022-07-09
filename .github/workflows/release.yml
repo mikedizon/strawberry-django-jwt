@@ -1,10 +1,10 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
-      - master
+  workflow_run:
+    workflows: ["Tests"]
+    branches: ["master", "main"]
+    types: ["completed"]
 
 jobs:
   release:
@@ -12,23 +12,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 2
 
       - name: Set up Python
-        uses: actions/setup-python@v3.1.2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.9"
 
-      - name: Upgrade pip
-        run: |
-          pip install --constraint=.github/workflows/constraints.txt pip
-          pip --version
-      - name: Install Poetry
-        run: |
-          pip install --constraint=.github/workflows/constraints.txt poetry
-          poetry --version
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
       - name: Check if there is a parent commit
         id: check-parent-commit
         run: |
@@ -50,12 +48,12 @@ jobs:
         run: |
           poetry build --ansi
       - name: Build and publish to PyPi
-        uses: JRubics/poetry-publish@v1.10
+        uses: JRubics/poetry-publish@v1.11
         with:
           pypi_token: ${{ secrets.PYPI_TOKEN }}
 
       - name: Publish the release notes
-        uses: release-drafter/release-drafter@v5.19.0
+        uses: release-drafter/release-drafter@v5.20.0
         with:
           publish: ${{ steps.check-version.outputs.tag != '' }}
           tag: ${{ steps.check-version.outputs.tag }}

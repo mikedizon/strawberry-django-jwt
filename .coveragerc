@@ -1,3 +1,0 @@
-[run]
-source = strawberry_django_jwt
-branch = True

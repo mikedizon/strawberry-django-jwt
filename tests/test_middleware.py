@@ -11,7 +11,7 @@ from strawberry_django_jwt.middleware import (
 )
 from strawberry_django_jwt.settings import jwt_settings
 from tests.decorators import OverrideJwtSettings
-from .testcases import AsyncTestCase, TestCase
+from tests.testcases import AsyncTestCase, TestCase
 
 
 class AuthenticateByHeaderTests(TestCase):
@@ -112,9 +112,7 @@ class AuthenticateByArgumentTests(TestCase):
         super().setUp()
         self.middleware = JSONWebTokenMiddleware
 
-    @OverrideJwtSettings(
-        JWT_ALLOW_ARGUMENT=True, JWT_ALLOW_ANY_HANDLER=lambda *args, **kwargs: False
-    )
+    @OverrideJwtSettings(JWT_ALLOW_ARGUMENT=True, JWT_ALLOW_ANY_HANDLER=lambda *args, **kwargs: False)
     def test_authenticate(self):
         kwargs = {
             jwt_settings.JWT_ARGUMENT_NAME: self.token,
@@ -235,9 +233,7 @@ class AuthenticateByHeaderTestsAsync(AsyncTestCase):
     @OverrideJwtSettings(JWT_ALLOW_ANY_HANDLER=lambda *args: False)
     async def test_authenticate_async(self):
         headers = {
-            jwt_settings.JWT_AUTH_HEADER_NAME.replace(
-                "HTTP_", ""
-            ): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
+            jwt_settings.JWT_AUTH_HEADER_NAME.replace("HTTP_", ""): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
         }
 
         next_mock = mock.Mock()
@@ -255,18 +251,14 @@ class AuthenticateByHeaderTestsAsync(AsyncTestCase):
             return None
 
         headers = {
-            jwt_settings.JWT_AUTH_HEADER_NAME.replace(
-                "HTTP_", ""
-            ): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
+            jwt_settings.JWT_AUTH_HEADER_NAME.replace("HTTP_", ""): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
         }
 
         next_mock = mock.Mock()
         info_mock = self.info(AnonymousUser(), **headers)
 
         middleware = self.middleware(execution_context=info_mock.context)
-        with mock.patch(
-            "strawberry_django_jwt.middleware.authenticate_async", side_effect=auth
-        ) as authenticate_mock:
+        with mock.patch("strawberry_django_jwt.middleware.authenticate_async", side_effect=auth) as authenticate_mock:
             await middleware.resolve(next_mock, None, info_mock)
 
         next_mock.assert_called_once_with(None, info_mock)
@@ -276,9 +268,7 @@ class AuthenticateByHeaderTestsAsync(AsyncTestCase):
     @OverrideJwtSettings(JWT_ALLOW_ANY_HANDLER=lambda *args: False)
     async def test_invalid_token_async(self):
         headers = {
-            jwt_settings.JWT_AUTH_HEADER_NAME.replace(
-                "HTTP_", ""
-            ): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} invalid",
+            jwt_settings.JWT_AUTH_HEADER_NAME.replace("HTTP_", ""): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} invalid",
         }
 
         next_mock = mock.Mock()
@@ -299,9 +289,7 @@ class AuthenticateByHeaderTestsAsync(AsyncTestCase):
         info_mock = self.info(self.user, **headers)
 
         middleware = self.middleware(execution_context=info_mock.context)
-        with mock.patch(
-            "strawberry_django_jwt.middleware.authenticate_async"
-        ) as authenticate_mock:
+        with mock.patch("strawberry_django_jwt.middleware.authenticate_async") as authenticate_mock:
             await middleware.resolve(next_mock, None, info_mock)
 
         next_mock.assert_called_once_with(None, info_mock)
@@ -329,9 +317,7 @@ class AuthenticateByArgumentTestsAsync(AsyncTestCase):
         super().setUp()
         self.middleware = AsyncJSONWebTokenMiddleware
 
-    @OverrideJwtSettings(
-        JWT_ALLOW_ARGUMENT=True, JWT_ALLOW_ANY_HANDLER=lambda *args, **kwargs: False
-    )
+    @OverrideJwtSettings(JWT_ALLOW_ARGUMENT=True, JWT_ALLOW_ANY_HANDLER=lambda *args, **kwargs: False)
     async def test_authenticate_async(self):
         kwargs = {
             jwt_settings.JWT_ARGUMENT_NAME: self.token,
@@ -377,9 +363,7 @@ class AuthenticateByArgumentTestsAsync(AsyncTestCase):
     async def test_clear_session_authentication_async(self):
         next_mock = mock.Mock()
         info_mock = self.info(self.user)
-        info_mock.context.session = await sync_to_async(self.client.__getattribute__)(
-            "session"
-        )
+        info_mock.context.session = await sync_to_async(self.client.__getattribute__)("session")
 
         middleware = self.middleware(execution_context=info_mock.context)
         await middleware.resolve(next_mock, None, info_mock)

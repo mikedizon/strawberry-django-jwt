@@ -7,11 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.routers import DefaultRouter
 
 from strawberry_django_jwt.decorators import jwt_cookie
+from strawberry_django_jwt.views import AsyncStatusHandlingGraphQLView as AGQLView
+from strawberry_django_jwt.views import StatusHandlingGraphQLView as GQLView
 from tests.example_app.schema import schema, sync_schema
-from strawberry_django_jwt.views import (
-    AsyncStatusHandlingGraphQLView as AGQLView,
-    StatusHandlingGraphQLView as GQLView,
-)
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -33,9 +31,7 @@ router.register(r"", UserViewSet, basename="user")
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
-    re_path(
-        r"^graphql/?$", jwt_cookie(AGQLView.as_view(schema=schema)), name="graphql"
-    ),
+    re_path(r"^graphql/?$", jwt_cookie(AGQLView.as_view(schema=schema)), name="graphql"),
     re_path(
         r"^sync-graphql/?$",
         jwt_cookie(GQLView.as_view(schema=sync_schema)),

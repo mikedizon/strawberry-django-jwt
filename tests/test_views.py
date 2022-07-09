@@ -1,7 +1,8 @@
 import json
 
-import strawberry
 from django.contrib.auth import get_user_model
+import strawberry
+from strawberry.types import Info
 
 from strawberry_django_jwt.decorators import login_required
 from strawberry_django_jwt.middleware import (
@@ -47,7 +48,7 @@ class ViewsTests(SchemaTestCase):
     class Query(JSONWebTokenMixin):
         @strawberry.field
         @login_required
-        def test(self, info) -> str:
+        def test(self, info: Info) -> str:
             return "TEST"
 
     def setUp(self):
@@ -132,7 +133,7 @@ class AsyncViewsTests(AsyncSchemaTestCase):
     class Query(JSONWebTokenMixin):
         @strawberry.field
         @login_required
-        async def test(self, info) -> str:
+        async def test(self, info: Info) -> str:
             return "TEST"
 
     def setUp(self):
@@ -151,9 +152,7 @@ class AsyncViewsTests(AsyncSchemaTestCase):
         """
 
         headers = {
-            jwt_settings.JWT_AUTH_HEADER_NAME.replace(
-                "HTTP_", ""
-            ): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
+            jwt_settings.JWT_AUTH_HEADER_NAME.replace("HTTP_", ""): f"{jwt_settings.JWT_AUTH_HEADER_PREFIX} {self.token}",
         }
 
         response = await self.client.execute(query, **headers)

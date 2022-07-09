@@ -1,11 +1,8 @@
 import inspect
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
+from django.contrib.auth.models import AbstractUser, Group, Permission
 import strawberry.django
-from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.models import Group
-from django.contrib.auth.models import Permission
 
 BORING = dir(type("dummy", (object,), {}))
 

@@ -1,6 +1,6 @@
 from django.apps import apps
 
-from ..settings import jwt_settings
+from strawberry_django_jwt.settings import jwt_settings
 
 
 def get_refresh_token_model():

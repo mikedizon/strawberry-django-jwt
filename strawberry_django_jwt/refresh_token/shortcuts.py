@@ -2,9 +2,9 @@ from asgiref.sync import sync_to_async
 from django.utils.functional import lazy
 from django.utils.translation import gettext as _
 
-from .utils import get_refresh_token_model
-from ..exceptions import JSONWebTokenError
-from ..settings import jwt_settings
+from strawberry_django_jwt.exceptions import JSONWebTokenError
+from strawberry_django_jwt.refresh_token.utils import get_refresh_token_model
+from strawberry_django_jwt.settings import jwt_settings
 
 
 def get_refresh_token(token, context=None):
@@ -29,9 +29,7 @@ def create_refresh_token(user, refresh_token=None):
 
 
 refresh_token_lazy = lazy(
-    lambda user, refresh_token=None: create_refresh_token(
-        user, refresh_token
-    ).get_token(),
+    lambda user, refresh_token=None: create_refresh_token(user, refresh_token).get_token(),
     str,
 )
 

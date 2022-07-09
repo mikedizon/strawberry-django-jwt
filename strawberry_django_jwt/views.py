@@ -19,9 +19,7 @@ def make_status_response(response: GraphQLHTTPResponse) -> StatusGraphQLHTTPResp
 
 
 class BaseStatusHandlingGraphQLView(BaseView):
-    def _create_response(
-        self, response_data: GraphQLHTTPResponse, sub_response: HttpResponse
-    ) -> JsonResponse:
+    def _create_response(self, response_data: GraphQLHTTPResponse, sub_response: HttpResponse) -> JsonResponse:
         data = cast(StatusGraphQLHTTPResponse, response_data)
         response = JsonResponse(data, status=data.get("status", None))
 
@@ -32,28 +30,16 @@ class BaseStatusHandlingGraphQLView(BaseView):
 
 
 class StatusHandlingGraphQLView(BaseStatusHandlingGraphQLView, GraphQLView):
-    def process_result(
-        self, request: HttpRequest, result: ExecutionResult
-    ) -> StatusGraphQLHTTPResponse:
+    def process_result(self, request: HttpRequest, result: ExecutionResult) -> StatusGraphQLHTTPResponse:
         res = make_status_response(process_result(result))
-        if result.errors:
-            if any(
-                isinstance(err, JSONWebTokenError)
-                for err in [e.original_error for e in result.errors]
-            ):
-                res["status"] = 401
+        if result.errors and any(isinstance(err, JSONWebTokenError) for err in [e.original_error for e in result.errors]):
+            res["status"] = 401
         return res
 
 
 class AsyncStatusHandlingGraphQLView(BaseStatusHandlingGraphQLView, AsyncGraphQLView):
-    async def process_result(
-        self, request: HttpRequest, result: ExecutionResult
-    ) -> StatusGraphQLHTTPResponse:
+    async def process_result(self, request: HttpRequest, result: ExecutionResult) -> StatusGraphQLHTTPResponse:
         res = make_status_response(process_result(result))
-        if result.errors:
-            if any(
-                isinstance(err, JSONWebTokenError)
-                for err in [e.original_error for e in result.errors]
-            ):
-                res["status"] = 401
+        if result.errors and any(isinstance(err, JSONWebTokenError) for err in [e.original_error for e in result.errors]):
+            res["status"] = 401
         return res

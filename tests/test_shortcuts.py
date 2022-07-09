@@ -1,6 +1,5 @@
 from strawberry_django_jwt import shortcuts
-
-from .testcases import UserTestCase
+from tests.testcases import UserTestCase
 
 
 class ShortcutsTests(UserTestCase):

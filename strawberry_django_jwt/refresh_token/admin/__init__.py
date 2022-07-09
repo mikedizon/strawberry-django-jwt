@@ -3,8 +3,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_admin_display import admin_display
 
-from . import filters
-from .. import models
+from strawberry_django_jwt.refresh_token import models
+from strawberry_django_jwt.refresh_token.admin import filters
 
 
 @admin.register(models.RefreshToken)

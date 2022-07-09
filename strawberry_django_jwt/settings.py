@@ -29,9 +29,7 @@ DEFAULTS = {
     "JWT_ENCODE_HANDLER": "strawberry_django_jwt.utils.jwt_encode",
     "JWT_DECODE_HANDLER": "strawberry_django_jwt.utils.jwt_decode",
     "JWT_PAYLOAD_HANDLER": "strawberry_django_jwt.utils.jwt_payload",
-    "JWT_PAYLOAD_GET_USERNAME_HANDLER": (
-        lambda payload: getattr(payload, get_user_model().USERNAME_FIELD)
-    ),
+    "JWT_PAYLOAD_GET_USERNAME_HANDLER": (lambda payload: getattr(payload, get_user_model().USERNAME_FIELD)),
     "JWT_GET_USER_BY_NATURAL_KEY_HANDLER": "strawberry_django_jwt.utils.get_user_by_natural_key",
     "JWT_ASYNC_GET_USER_BY_NATURAL_KEY_HANDLER": "strawberry_django_jwt.utils.get_user_by_natural_key_async",
     "JWT_REFRESH_EXPIRED_HANDLER": "strawberry_django_jwt.utils.refresh_has_expired",
@@ -76,10 +74,7 @@ def import_from_string(value, setting_name):
     try:
         return import_string(value)
     except ImportError as e:
-        msg = (
-            f"Could not import `{value}` for JWT setting `{setting_name}`."
-            f"{e.__class__.__name__}: {e}."
-        )
+        msg = f"Could not import `{value}` for JWT setting `{setting_name}`." f"{e.__class__.__name__}: {e}."
         raise ImportError(msg)
 
 

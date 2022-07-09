@@ -3,8 +3,7 @@ import inspect
 import re
 
 from asgiref.sync import sync_to_async
-from django.contrib.auth import get_backends
-from django.contrib.auth import user_login_failed
+from django.contrib.auth import get_backends, user_login_failed
 from django.core.exceptions import PermissionDenied
 from django.core.handlers.asgi import ASGIRequest
 from django.views.decorators.debug import sensitive_variables
@@ -46,9 +45,7 @@ async def authenticate(request=None, **credentials):
                 user = await backend.authenticate(request, **credentials)
             else:
                 if isinstance(request, ASGIRequest):
-                    user = await sync_to_async(backend.authenticate)(
-                        request, **credentials
-                    )
+                    user = await sync_to_async(backend.authenticate)(request, **credentials)
                 else:
                     user = backend.authenticate(request, **credentials)
         except PermissionDenied:
@@ -61,6 +58,6 @@ async def authenticate(request=None, **credentials):
         return user
 
     # The credentials supplied are invalid to all backends, fire signal
-    user_login_failed.send(
-        sender=__name__, credentials=_clean_credentials(credentials), request=request
-    )
+    user_login_failed.send(sender=__name__, credentials=_clean_credentials(credentials), request=request)
+
+    return None
