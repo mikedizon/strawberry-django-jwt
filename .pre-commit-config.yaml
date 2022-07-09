@@ -29,7 +29,7 @@ repos:
     rev: v2.34.0
     hooks:
       - id: pyupgrade
-        args: ["--py37-plus"]
+        args: ["--py37-plus", "--keep-mock"]
   - repo: https://github.com/pycqa/isort
     rev: 5.10.1
     hooks:

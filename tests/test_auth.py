@@ -2,7 +2,7 @@ from sys import version_info
 from unittest.mock import patch
 
 if version_info < (3, 8):
-    from unittest.mock import AsyncMock
+    from mock import AsyncMock
 else:
     from unittest.mock import AsyncMock
 
