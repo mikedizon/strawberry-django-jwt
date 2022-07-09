@@ -27,8 +27,8 @@ Django = [
     { version = ">=3.2,<5", markers = "python_version >= '3.8'", optional = true }
 ]
 PyJWT = ">=1.7.1,<3.0"
-strawberry-graphql = ">=0.82.0,<1.0.0"
-strawberry-graphql-django = { version = ">=0.2.5,<4.0", allow-prereleases = true }
+strawberry-graphql = ">=0.109.0,<1.0.0"
+strawberry-graphql-django = { version = ">=0.3,<4.0", allow-prereleases = true }
 django-admin-display = "^1.3.0"
 packaging = ">=20.0,<30.0"
 importlib-metadata = { version = ">=1.7,<5.0", python = "<=3.7" }
@@ -64,10 +64,7 @@ testpaths = [
 ]
 DJANGO_SETTINGS_MODULE = "tests.example_app.settings"
 python_files = "tests.py test_*.py *_tests.py"
-filterwarnings = [
-    "ignore:`is_unset` is deprecated use `value is UNSET` instead:DeprecationWarning",
-    "ignore:importing `UNSET` from `strawberry.arguments` is deprecated, import instead from `strawberry` or from `strawberry.unset`:DeprecationWarning",
-]
+filterwarnings = []
 
 [tool.black]
 line-length = 160
