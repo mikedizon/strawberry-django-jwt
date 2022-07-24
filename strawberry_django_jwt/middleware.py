@@ -107,7 +107,7 @@ class BaseJSONWebTokenMiddleware(Extension):
         return context, token_argument
 
 
-class JSONWebTokenMiddleware(BaseJSONWebTokenMiddleware):
+class JSONWebTokenMiddleware:
     def __init__(self):
         self.cached_allow_any = set()
         self.domain = settings.AUTH0['AUTH0_DOMAIN']
