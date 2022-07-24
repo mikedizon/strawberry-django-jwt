@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Optional, cast
 
 from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.http import HttpRequest
 from django.utils.translation import gettext as _
 from graphql import GraphQLResolveInfo
@@ -18,7 +19,8 @@ from strawberry.arguments import StrawberryArgument
 from strawberry.django.context import StrawberryDjangoContext
 from strawberry.types import Info
 
-from strawberry_django_jwt import exceptions, object_types
+from strawberry_django_jwt import exceptions, object_types, signals
+from strawberry_django_jwt.refresh_token.shortcuts import create_refresh_token
 from strawberry_django_jwt.settings import jwt_settings
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -238,3 +240,13 @@ def get_context(info: HttpRequest | Request | Info[Any, Any] | GraphQLResolveInf
             return ctx.request
         return ctx
     return info
+
+
+def create_user_token(user: User) -> object_types.TokenDataType:
+    token = jwt_settings.JWT_PAYLOAD_HANDLER(user)
+    token_object = object_types.TokenDataType(payload=token, token=jwt_settings.JWT_ENCODE_HANDLER(token))
+    if jwt_settings.JWT_LONG_RUNNING_REFRESH_TOKEN:
+        token_object.refresh_token = create_refresh_token(user).get_token()  # type: ignore
+
+    signals.token_issued.send(sender=create_user_token, request=None, user=user)
+    return token_object
