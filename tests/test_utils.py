@@ -206,7 +206,8 @@ class GetUserByPayloadTestsAsync(AsyncTestCase):
 
 
 class CreateUserTokenTestsAsync(AsyncTestCase):
+    @OverrideJwtSettings(JWT_LONG_RUNNING_REFRESH_TOKEN=True)
     async def test_create_user_token_async(self):
-        token = utils.create_user_token(self.user)
+        token = await utils.create_user_token(self.user)
         user = await get_user_by_token_async(token.token)
         assert user == self.user
